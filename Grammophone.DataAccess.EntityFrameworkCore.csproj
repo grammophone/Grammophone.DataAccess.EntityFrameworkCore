@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <ProjectGuid>{51A8D3D9-9B07-49D0-9A7B-0C58EE07F6E4}</ProjectGuid>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyTitle>Grammophone.DataAccess.EntityFrameworkCore</AssemblyTitle>
+    <Product>Grammophone.DataAccess.EntityFrameworkCore</Product>
+    <Copyright>Copyright ©  2016</Copyright>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\Grammophone.DataAccess.EntityFrameworkCore.XML</DocumentationFile>
+		<LangVersion>8.0</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
+	</ItemGroup>
+  <ItemGroup>
+    <None Include="LICENSE.md" />
+    <None Include="README.md" />
+		<None Remove=".git" />
+		<None Remove=".gitignore" />
+	</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Grammophone.DataAccess\Grammophone.DataAccess.csproj" />
+  </ItemGroup>
+</Project>
