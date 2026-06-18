@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -85,6 +86,13 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// <inheritdoc/>
 		public TransactionMode TransactionMode { get; private set; }
 
+		/// <summary>
+		/// Optional <see cref="IExceptionTransformer"/> to be used during saving changes
+		/// and <see cref="TranslateException(SystemException)"/> methods.
+		/// Default value is null.
+		/// </summary>
+		public IExceptionTransformer ExceptionTransformer { get; set; }
+
 		/// <inheritdoc/>
 		object IContextOwner.UnderlyingContext => this;
 
@@ -96,7 +104,14 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		{
 			if (TransactionMode == TransactionMode.Deferred && transactionNestingLevel >= 1) return 0;
 
-			return base.SaveChanges();
+			try
+			{
+				return base.SaveChanges();
+			}
+			catch (DbUpdateException updateException)
+			{
+				throw TranslateUpdateException(updateException);
+			}
 		}
 
 		/// <inheritdoc/>
@@ -110,7 +125,14 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		{
 			if (TransactionMode == TransactionMode.Deferred && transactionNestingLevel >= 1) return 0;
 
-			return await base.SaveChangesAsync(cancellationToken);
+			try
+			{
+				return await base.SaveChangesAsync(cancellationToken);
+			}
+			catch (DbUpdateException updateException)
+			{
+				throw TranslateUpdateException(updateException);
+			}
 		}
 
 		/// <inheritdoc/>
@@ -172,7 +194,14 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// <inheritdoc/>
 		public virtual Exception TranslateException(SystemException exception)
 		{
-			return exception;
+			switch (exception)
+			{
+				case DbException dbException:
+					return TranslateDbException(dbException);
+
+				default:
+					return exception;
+			}
 		}
 
 		/// <inheritdoc/>
@@ -234,6 +263,49 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 				dbContextTransaction?.Dispose();
 				dbContextTransaction = null;
 			}
+		}
+
+		#endregion
+
+		#region Private methods
+
+		private DataAccessException TranslateUpdateException(DbUpdateException updateException)
+		{
+			var dbException = FindDbException(updateException);
+
+			if (dbException != null)
+			{
+				return TranslateDbException(dbException);
+			}
+
+			return new DataAccessException(
+				updateException.Message,
+				updateException.InnerException ?? updateException);
+		}
+
+		private DataAccessException TranslateDbException(DbException dbException)
+		{
+			if (this.ExceptionTransformer != null)
+			{
+				return this.ExceptionTransformer.TranslateDbException(dbException);
+			}
+
+			return new DataAccessException(dbException.Message, dbException);
+		}
+
+		private static DbException FindDbException(Exception exception)
+		{
+			while (exception != null)
+			{
+				if (exception is DbException dbException)
+				{
+					return dbException;
+				}
+
+				exception = exception.InnerException;
+			}
+
+			return null;
 		}
 
 		#endregion
