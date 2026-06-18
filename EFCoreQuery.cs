@@ -87,7 +87,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 	/// </summary>
 	/// <typeparam name="E">The type of the entities.</typeparam>
 	/// <typeparam name="Q">The type of the Entity Framework Core query object.</typeparam>
-	public class EFCoreQuery<E, Q> : EFCoreQuery<Q>, IEntityQuery<E>
+	public class EFCoreQuery<E, Q> : EFCoreQuery<Q>, IEntityQuery<E>, IOrderedQueryable<E>
 		where Q : IQueryable<E>
 	{
 		#region Construction
