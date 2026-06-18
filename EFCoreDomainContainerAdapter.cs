@@ -48,15 +48,15 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// <inheritdoc/>
 		public bool IsProxyCreationEnabled
 		{
-			get => InnerDomainContainer.IsProxyCreationEnabled;
-			set => InnerDomainContainer.IsProxyCreationEnabled = value;
+			get => this.InnerDomainContainer.IsProxyCreationEnabled;
+			set => this.InnerDomainContainer.IsProxyCreationEnabled = value;
 		}
 
 		/// <inheritdoc/>
 		public bool IsLazyLoadingEnabled
 		{
-			get => InnerDomainContainer.IsLazyLoadingEnabled;
-			set => InnerDomainContainer.IsLazyLoadingEnabled = value;
+			get => this.InnerDomainContainer.IsLazyLoadingEnabled;
+			set => this.InnerDomainContainer.IsLazyLoadingEnabled = value;
 		}
 
 		/// <inheritdoc/>
