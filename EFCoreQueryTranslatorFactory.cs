@@ -43,7 +43,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			AddMapping(
 				mappings,
 				QueryExtensionMethodInfos.IncludeString,
-				GetGenericMethodDefinition(
+				MethodInfoCatalog.GetGenericMethodDefinition(
 					typeof(EntityFrameworkQueryableExtensions),
 					nameof(EntityFrameworkQueryableExtensions.Include),
 					typeof(IQueryable<>),
@@ -52,7 +52,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			AddMapping(
 				mappings,
 				QueryExtensionMethodInfos.IncludeExpression,
-				GetGenericMethodDefinition(
+				MethodInfoCatalog.GetGenericMethodDefinition(
 					typeof(EntityFrameworkQueryableExtensions),
 					nameof(EntityFrameworkQueryableExtensions.Include),
 					typeof(IQueryable<>),
@@ -61,7 +61,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			AddMapping(
 				mappings,
 				QueryExtensionMethodInfos.AsNoTracking,
-				GetGenericMethodDefinition(
+				MethodInfoCatalog.GetGenericMethodDefinition(
 					typeof(EntityFrameworkQueryableExtensions),
 					nameof(EntityFrameworkQueryableExtensions.AsNoTracking),
 					typeof(IQueryable<>)));
@@ -69,12 +69,12 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			AddDbFunctionsMapping(
 				mappings,
 				QueryFunctionsMethodInfos.Like,
-				GetMethod(typeof(DbFunctionsExtensions), nameof(DbFunctionsExtensions.Like), typeof(DbFunctions), typeof(string), typeof(string)));
+				MethodInfoCatalog.GetMethodInfo(typeof(DbFunctionsExtensions), nameof(DbFunctionsExtensions.Like), typeof(DbFunctions), typeof(string), typeof(string)));
 
 			AddDbFunctionsMapping(
 				mappings,
 				QueryFunctionsMethodInfos.LikeWithEscape,
-				GetMethod(typeof(DbFunctionsExtensions), nameof(DbFunctionsExtensions.Like), typeof(DbFunctions), typeof(string), typeof(string), typeof(string)));
+				MethodInfoCatalog.GetMethodInfo(typeof(DbFunctionsExtensions), nameof(DbFunctionsExtensions.Like), typeof(DbFunctions), typeof(string), typeof(string), typeof(string)));
 
 			AddDateDiffMapping(mappings, QueryFunctionsMethodInfos.DiffYearsDateTime, "DateDiffYear", typeof(DateTime?), typeof(DateTime?));
 			AddDateDiffMapping(mappings, QueryFunctionsMethodInfos.DiffYearsDateTimeOffset, "DateDiffYear", typeof(DateTimeOffset?), typeof(DateTimeOffset?));
@@ -126,70 +126,11 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			AddDbFunctionsMapping(
 				mappings,
 				portableMethodInfo,
-				GetMethod(
+				MethodInfoCatalog.GetMethodInfo(
 					typeof(SqlServerDbFunctionsExtensions),
 					nativeMethodName,
 					new[] { typeof(DbFunctions) }.Concat(dateTypes).ToArray()));
 		}
-
-		private static MethodInfo GetGenericMethodDefinition(
-			Type declaringType,
-			string methodName,
-			params Type[] parameterTypeDefinitions)
-		{
-			return GetMethod(
-				declaringType,
-				methodName,
-				methodInfo => methodInfo.IsGenericMethodDefinition,
-				parameterTypeDefinitions);
-		}
-
-		private static MethodInfo GetMethod(
-			Type declaringType,
-			string methodName,
-			params Type[] parameterTypes)
-		{
-			return GetMethod(
-				declaringType,
-				methodName,
-				methodInfo => !methodInfo.IsGenericMethod,
-				parameterTypes);
-		}
-
-		private static MethodInfo GetMethod(
-			Type declaringType,
-			string methodName,
-			Func<MethodInfo, bool> methodPredicate,
-			Type[] parameterTypes)
-		{
-			foreach (var methodInfo in declaringType.GetMethods(BindingFlags.Public | BindingFlags.Static))
-			{
-				if (methodInfo.Name != methodName || !methodPredicate(methodInfo)) continue;
-
-				var parameters = methodInfo.GetParameters();
-
-				if (parameters.Length != parameterTypes.Length) continue;
-
-				if (parameters.Select(p => NormalizeParameterType(p.ParameterType)).SequenceEqual(parameterTypes.Select(NormalizeParameterType)))
-				{
-					return methodInfo;
-				}
-			}
-
-			throw new InvalidOperationException(
-				$"Method '{methodName}' with the requested signature was not found in type '{declaringType.FullName}'.");
-		}
-
-		private static Type NormalizeParameterType(Type parameterType)
-		{
-			if (parameterType.IsGenericType && parameterType.ContainsGenericParameters)
-			{
-				return parameterType.GetGenericTypeDefinition();
-			}
-
-			return parameterType;
-		}
-
 		#endregion
 	}
 }
