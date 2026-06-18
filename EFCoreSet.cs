@@ -8,7 +8,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 	/// An <see cref="IEntitySet{E}"/> implementation based on Entity Framework Core's <see cref="DbSet{TEntity}"/>.
 	/// </summary>
 	/// <typeparam name="E">The type of the entities.</typeparam>
-	public class EFSet<E> : EFQuery<E, DbSet<E>>, IEntitySet<E>
+	public class EFCoreSet<E> : EFCoreQuery<E, DbSet<E>>, IEntitySet<E>
 		where E : class
 	{
 		#region Construction
@@ -18,7 +18,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// </summary>
 		/// <param name="dbSet">The Entity Framework Core set.</param>
 		/// <param name="domainContainer">The domain container which the query pertains to.</param>
-		public EFSet(DbSet<E> dbSet, IDomainContainer domainContainer)
+		public EFCoreSet(DbSet<E> dbSet, IDomainContainer domainContainer)
 			: base(dbSet, domainContainer)
 		{
 		}

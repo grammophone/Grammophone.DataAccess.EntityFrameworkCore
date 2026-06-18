@@ -6,7 +6,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 	/// <summary>
 	/// Entity Framework Core implementation of <see cref="IPropertyEntry{E, P}"/>.
 	/// </summary>
-	public class EFPropertyEntry<E, P> : IPropertyEntry<E, P>
+	public class EFCorePropertyEntry<E, P> : IPropertyEntry<E, P>
 		where E : class
 	{
 		#region Private fields
@@ -17,7 +17,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 
 		#region Construction
 
-		internal EFPropertyEntry(IEntityEntry<E> entityEntry, PropertyEntry<E, P> underlyingPropertyEntry)
+		internal EFCorePropertyEntry(IEntityEntry<E> entityEntry, PropertyEntry<E, P> underlyingPropertyEntry)
 		{
 			if (entityEntry == null) throw new ArgumentNullException(nameof(entityEntry));
 			if (underlyingPropertyEntry == null) throw new ArgumentNullException(nameof(underlyingPropertyEntry));

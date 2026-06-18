@@ -11,12 +11,12 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 	/// <summary>
 	/// Factory for the Entity Framework Core query translator.
 	/// </summary>
-	public static class EFQueryTranslatorFactory
+	public static class EFCoreQueryTranslatorFactory
 	{
 		#region Private fields
 
 		private static readonly QueryTranslator QueryTranslator = new QueryTranslator(
-			new EFTerminalMethodsAdapter(),
+			new EFCoreTerminalMethodsAdapter(),
 			CreateMethodMappings());
 
 		#endregion

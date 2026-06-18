@@ -8,7 +8,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 	/// <summary>
 	/// Implementation of <see cref="IChangeTracker"/> for Entity Framework Core.
 	/// </summary>
-	public class EFChangeTracker : IChangeTracker
+	public class EFCoreChangeTracker : IChangeTracker
 	{
 		#region Private fields
 
@@ -18,7 +18,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 
 		#region Construction
 
-		internal EFChangeTracker(DbContext dbContext)
+		internal EFCoreChangeTracker(DbContext dbContext)
 		{
 			if (dbContext == null) throw new ArgumentNullException(nameof(dbContext));
 
@@ -37,11 +37,11 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 
 		/// <inheritdoc/>
 		public IEnumerable<IEntityEntry<object>> Entries()
-			=> dbContext.ChangeTracker.Entries<object>().Select(e => new EFEntityEntry<object>(e));
+			=> dbContext.ChangeTracker.Entries<object>().Select(e => new EFCoreEntityEntry<object>(e));
 
 		/// <inheritdoc/>
 		public IEnumerable<IEntityEntry<E>> Entries<E>() where E : class
-			=> dbContext.ChangeTracker.Entries<E>().Select(e => new EFEntityEntry<E>(e));
+			=> dbContext.ChangeTracker.Entries<E>().Select(e => new EFCoreEntityEntry<E>(e));
 
 		/// <inheritdoc/>
 		public IEnumerable<IEntityEntry<object>> Entries(TrackingState trackingState)
@@ -50,7 +50,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 
 			return dbContext.ChangeTracker.Entries<object>()
 				.Where(e => (e.State & entityState) != 0)
-				.Select(e => new EFEntityEntry<object>(e));
+				.Select(e => new EFCoreEntityEntry<object>(e));
 		}
 
 		/// <inheritdoc/>
@@ -60,7 +60,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 
 			return dbContext.ChangeTracker.Entries<E>()
 				.Where(e => (e.State & entityState) != 0)
-				.Select(e => new EFEntityEntry<E>(e));
+				.Select(e => new EFCoreEntityEntry<E>(e));
 		}
 
 		/// <inheritdoc/>

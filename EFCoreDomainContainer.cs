@@ -11,11 +11,11 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 	/// <summary>
 	/// An Entity Framework Core <see cref="DbContext"/> which also implements <see cref="IDomainContainer"/>.
 	/// </summary>
-	public abstract class EFDomainContainer : DbContext, IDomainContainer
+	public abstract class EFCoreDomainContainer : DbContext, IDomainContainer
 	{
 		#region Private fields
 
-		private EFChangeTracker changeTracker;
+		private EFCoreChangeTracker changeTracker;
 
 		private IDbContextTransaction dbContextTransaction;
 
@@ -28,7 +28,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// <summary>
 		/// Create.
 		/// </summary>
-		protected EFDomainContainer()
+		protected EFCoreDomainContainer()
 			: this(TransactionMode.Real)
 		{
 		}
@@ -37,7 +37,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// Create.
 		/// </summary>
 		/// <param name="transactionMode">The transaction behavior.</param>
-		protected EFDomainContainer(TransactionMode transactionMode)
+		protected EFCoreDomainContainer(TransactionMode transactionMode)
 		{
 			this.TransactionMode = transactionMode;
 		}
@@ -46,7 +46,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// Create.
 		/// </summary>
 		/// <param name="options">The context options.</param>
-		protected EFDomainContainer(DbContextOptions options)
+		protected EFCoreDomainContainer(DbContextOptions options)
 			: this(options, TransactionMode.Real)
 		{
 		}
@@ -56,7 +56,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// </summary>
 		/// <param name="options">The context options.</param>
 		/// <param name="transactionMode">The transaction behavior.</param>
-		protected EFDomainContainer(DbContextOptions options, TransactionMode transactionMode)
+		protected EFCoreDomainContainer(DbContextOptions options, TransactionMode transactionMode)
 			: base(options)
 		{
 			this.TransactionMode = transactionMode;
@@ -67,7 +67,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		#region IDomainContainer implementation
 
 		/// <inheritdoc/>
-		IChangeTracker IDomainContainer.ChangeTracker => changeTracker ??= new EFChangeTracker(this);
+		IChangeTracker IDomainContainer.ChangeTracker => changeTracker ??= new EFCoreChangeTracker(this);
 
 		/// <inheritdoc/>
 		public ICollection<IEntityListener> EntityListeners { get; } = new List<IEntityListener>();
@@ -147,7 +147,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 				dbContextTransaction = Database.BeginTransaction();
 			}
 
-			return new EFTransaction(this);
+			return new EFCoreTransaction(this);
 		}
 
 		/// <inheritdoc/>
@@ -160,7 +160,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 				dbContextTransaction = Database.BeginTransaction(isolationLevel);
 			}
 
-			return new EFTransaction(this);
+			return new EFCoreTransaction(this);
 		}
 
 		/// <inheritdoc/>
@@ -178,7 +178,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// <inheritdoc/>
 		public virtual QueryTranslator TryGetQueryTranslator()
 		{
-			return EFQueryTranslatorFactory.GetQueryTranslator();
+			return EFCoreQueryTranslatorFactory.GetQueryTranslator();
 		}
 
 		#endregion
@@ -193,7 +193,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// <returns>Returns the entity entry.</returns>
 		public IEntityEntry<E> GetEntry<E>(E entity) where E : class
 		{
-			return new EFEntityEntry<E>(Entry(entity));
+			return new EFCoreEntityEntry<E>(Entry(entity));
 		}
 
 		#endregion

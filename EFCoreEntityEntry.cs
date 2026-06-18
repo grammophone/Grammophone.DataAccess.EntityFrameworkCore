@@ -13,7 +13,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 	/// Provides information about and control of an entity by implementing <see cref="IEntityEntry{E}"/>.
 	/// </summary>
 	/// <typeparam name="E">The type of the entity.</typeparam>
-	public class EFEntityEntry<E> : IEntityEntry<E>
+	public class EFCoreEntityEntry<E> : IEntityEntry<E>
 		where E : class
 	{
 		#region Private fields
@@ -26,7 +26,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 
 		#region Construction
 
-		internal EFEntityEntry(EntityEntry<E> underlyingEntry)
+		internal EFCoreEntityEntry(EntityEntry<E> underlyingEntry)
 		{
 			if (underlyingEntry == null) throw new ArgumentNullException(nameof(underlyingEntry));
 
@@ -65,7 +65,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		{
 			if (propertySelector == null) throw new ArgumentNullException(nameof(propertySelector));
 
-			return new EFPropertyEntry<E, P>(this, underlyingEntityEntry.Property(propertySelector));
+			return new EFCorePropertyEntry<E, P>(this, underlyingEntityEntry.Property(propertySelector));
 		}
 
 		/// <inheritdoc/>
@@ -79,7 +79,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		{
 			if (propertySelector == null) throw new ArgumentNullException(nameof(propertySelector));
 
-			return new EFReferenceEntry<E, P>(this, underlyingEntityEntry.Reference(propertySelector));
+			return new EFCoreReferenceEntry<E, P>(this, underlyingEntityEntry.Reference(propertySelector));
 		}
 
 		/// <inheritdoc/>
@@ -87,7 +87,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		{
 			if (propertySelector == null) throw new ArgumentNullException(nameof(propertySelector));
 
-			return new EFCollectionEntry<E, I>(this, underlyingEntityEntry.Collection<I>(GetMemberName(propertySelector.Body)));
+			return new EFCoreCollectionEntry<E, I>(this, underlyingEntityEntry.Collection<I>(GetMemberName(propertySelector.Body)));
 		}
 
 		#endregion
@@ -97,7 +97,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		private IReadOnlyDictionary<string, IPropertyEntry<E, object>> CreatePropertiesByName()
 		{
 			return underlyingEntityEntry.Metadata.GetProperties()
-				.Select(p => new EFPropertyEntry<E, object>(this, underlyingEntityEntry.Property<object>(p.Name)))
+				.Select(p => new EFCorePropertyEntry<E, object>(this, underlyingEntityEntry.Property<object>(p.Name)))
 				.ToDictionary(p => p.Name, p => (IPropertyEntry<E, object>)p);
 		}
 

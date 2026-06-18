@@ -6,7 +6,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 	/// <summary>
 	/// Entity Framework Core implementation of the translating query provider.
 	/// </summary>
-	public class EFTranslatingQueryProvider : TranslatingQueryProvider
+	public class EFCoreTranslatingQueryProvider : TranslatingQueryProvider
 	{
 		#region Construction
 
@@ -15,7 +15,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// </summary>
 		/// <param name="nativeQueryProvider">The underlying Entity Framework Core query provider.</param>
 		/// <param name="domainContainer">The domain container which owns the query.</param>
-		public EFTranslatingQueryProvider(IQueryProvider nativeQueryProvider, IDomainContainer domainContainer) : base(nativeQueryProvider, domainContainer)
+		public EFCoreTranslatingQueryProvider(IQueryProvider nativeQueryProvider, IDomainContainer domainContainer) : base(nativeQueryProvider, domainContainer)
 		{
 		}
 
@@ -28,7 +28,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		{
 			if (nativeQueryable == null) throw new ArgumentNullException(nameof(nativeQueryable));
 
-			return new EFQuery<IQueryable>(nativeQueryable, this.DomainContainer);
+			return new EFCoreQuery<IQueryable>(nativeQueryable, this.DomainContainer);
 		}
 
 		/// <inheritdoc/>
@@ -36,7 +36,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		{
 			if (nativeQueryable == null) throw new ArgumentNullException(nameof(nativeQueryable));
 
-			return new EFQuery<T, IQueryable<T>>(nativeQueryable, this.DomainContainer);
+			return new EFCoreQuery<T, IQueryable<T>>(nativeQueryable, this.DomainContainer);
 		}
 
 		#endregion

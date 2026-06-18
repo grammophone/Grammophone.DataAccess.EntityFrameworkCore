@@ -10,7 +10,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 	/// <summary>
 	/// Entity Framework Core terminal methods adapter.
 	/// </summary>
-	public class EFTerminalMethodsAdapter : DefaultTerminalMethodsAdapter
+	public class EFCoreTerminalMethodsAdapter : DefaultTerminalMethodsAdapter
 	{
 		#region Public methods
 

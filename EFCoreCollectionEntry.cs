@@ -10,7 +10,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 	/// <summary>
 	/// Entity Framework Core implementation of <see cref="ICollectionEntry{E, I}"/>.
 	/// </summary>
-	public class EFCollectionEntry<E, I> : ICollectionEntry<E, I>
+	public class EFCoreCollectionEntry<E, I> : ICollectionEntry<E, I>
 		where E : class
 		where I : class
 	{
@@ -22,7 +22,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 
 		#region Construction
 
-		internal EFCollectionEntry(IEntityEntry<E> entityEntry, CollectionEntry<E, I> underlyingCollectionEntry)
+		internal EFCoreCollectionEntry(IEntityEntry<E> entityEntry, CollectionEntry<E, I> underlyingCollectionEntry)
 		{
 			if (entityEntry == null) throw new ArgumentNullException(nameof(entityEntry));
 			if (underlyingCollectionEntry == null) throw new ArgumentNullException(nameof(underlyingCollectionEntry));

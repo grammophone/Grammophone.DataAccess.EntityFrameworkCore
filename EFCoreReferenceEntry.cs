@@ -9,7 +9,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 	/// <summary>
 	/// Entity Framework Core implementation of <see cref="IReferenceEntry{E, P}"/>.
 	/// </summary>
-	public class EFReferenceEntry<E, P> : IReferenceEntry<E, P>
+	public class EFCoreReferenceEntry<E, P> : IReferenceEntry<E, P>
 		where E : class
 		where P : class
 	{
@@ -21,7 +21,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 
 		#region Construction
 
-		internal EFReferenceEntry(IEntityEntry<E> entityEntry, ReferenceEntry<E, P> underlyingReferenceEntry)
+		internal EFCoreReferenceEntry(IEntityEntry<E> entityEntry, ReferenceEntry<E, P> underlyingReferenceEntry)
 		{
 			if (entityEntry == null) throw new ArgumentNullException(nameof(entityEntry));
 			if (underlyingReferenceEntry == null) throw new ArgumentNullException(nameof(underlyingReferenceEntry));

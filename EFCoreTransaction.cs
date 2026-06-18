@@ -7,11 +7,11 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 	/// <summary>
 	/// Entity Framework Core implementation of <see cref="ITransaction"/>.
 	/// </summary>
-	public class EFTransaction : ITransaction
+	public class EFCoreTransaction : ITransaction
 	{
 		#region Private fields
 
-		private readonly EFDomainContainer domainContainer;
+		private readonly EFCoreDomainContainer domainContainer;
 
 		private bool isPassed;
 
@@ -21,7 +21,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 
 		#region Construction
 
-		internal EFTransaction(EFDomainContainer domainContainer)
+		internal EFCoreTransaction(EFCoreDomainContainer domainContainer)
 		{
 			if (domainContainer == null) throw new ArgumentNullException(nameof(domainContainer));
 

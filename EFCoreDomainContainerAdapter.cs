@@ -10,13 +10,13 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 	/// Use this domain container implementation if you plan to expose entity sets as <see cref="IEntitySet{E}"/>.
 	/// </summary>
 	/// <typeparam name="D">The adapted Entity Framework Core domain container type.</typeparam>
-public abstract class EFDomainContainerAdapter<D> : IDomainContainer
-		where D : EFDomainContainer
+	public abstract class EFCoreDomainContainerAdapter<D> : IDomainContainer
+		where D : EFCoreDomainContainer
 	{
 		#region Protected properties
 
 		/// <summary>
-		/// The adapted <see cref="EFDomainContainer"/>.
+		/// The adapted <see cref="EFCoreDomainContainer"/>.
 		/// </summary>
 		protected D InnerDomainContainer { get; }
 
@@ -28,7 +28,7 @@ public abstract class EFDomainContainerAdapter<D> : IDomainContainer
 		/// Create.
 		/// </summary>
 		/// <param name="innerContainer">The adapted domain container.</param>
-		public EFDomainContainerAdapter(D innerContainer)
+		public EFCoreDomainContainerAdapter(D innerContainer)
 		{
 			if (innerContainer == null) throw new ArgumentNullException(nameof(innerContainer));
 

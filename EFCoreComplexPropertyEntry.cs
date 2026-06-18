@@ -6,12 +6,12 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 	/// <summary>
 	/// Placeholder Entity Framework Core implementation of <see cref="IComplexPropertyEntry{E, P}"/>.
 	/// </summary>
-	public class EFComplexPropertyEntry<E, P> : IComplexPropertyEntry<E, P>
+	public class EFCoreComplexPropertyEntry<E, P> : IComplexPropertyEntry<E, P>
 		where E : class
 	{
 		#region Construction
 
-		internal EFComplexPropertyEntry()
+		internal EFCoreComplexPropertyEntry()
 		{
 		}
 

@@ -10,7 +10,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 	/// Non-generic implementation of <see cref="IEntityQuery"/> using Entity Framework Core.
 	/// </summary>
 	/// <typeparam name="Q">The type of the Entity Framework Core query object.</typeparam>
-	public class EFQuery<Q> : IEntityQuery
+	public class EFCoreQuery<Q> : IEntityQuery
 		where Q : IQueryable
 	{
 		#region Private fields
@@ -26,7 +26,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// </summary>
 		/// <param name="nativeQuery">The Entity Framework Core query object.</param>
 		/// <param name="domainContainer">The domain container which the query pertains to.</param>
-		public EFQuery(Q nativeQuery, IDomainContainer domainContainer)
+		public EFCoreQuery(Q nativeQuery, IDomainContainer domainContainer)
 		{
 			if (nativeQuery == null) throw new ArgumentNullException(nameof(nativeQuery));
 			if (domainContainer == null) throw new ArgumentNullException(nameof(domainContainer));
@@ -57,7 +57,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		{
 			get
 			{
-				return translatingProvider ??= new EFTranslatingQueryProvider(this.NativeProvider, this.DomainContainer);
+				return translatingProvider ??= new EFCoreTranslatingQueryProvider(this.NativeProvider, this.DomainContainer);
 			}
 		}
 
@@ -87,7 +87,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 	/// </summary>
 	/// <typeparam name="E">The type of the entities.</typeparam>
 	/// <typeparam name="Q">The type of the Entity Framework Core query object.</typeparam>
-	public class EFQuery<E, Q> : EFQuery<Q>, IEntityQuery<E>
+	public class EFCoreQuery<E, Q> : EFCoreQuery<Q>, IEntityQuery<E>
 		where Q : IQueryable<E>
 	{
 		#region Construction
@@ -97,7 +97,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// </summary>
 		/// <param name="nativeQuery">The Entity Framework Core query object.</param>
 		/// <param name="domainContainer">The domain container which the query pertains to.</param>
-		public EFQuery(Q nativeQuery, IDomainContainer domainContainer) : base(nativeQuery, domainContainer)
+		public EFCoreQuery(Q nativeQuery, IDomainContainer domainContainer) : base(nativeQuery, domainContainer)
 		{
 		}
 
@@ -125,7 +125,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// </summary>
 		public override bool Equals(object obj)
 		{
-			var other = obj as EFQuery<E, Q>;
+			var other = obj as EFCoreQuery<E, Q>;
 
 			if (other == null) return false;
 
