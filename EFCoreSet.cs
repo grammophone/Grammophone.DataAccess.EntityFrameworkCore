@@ -48,13 +48,13 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// <inheritdoc/>
 		public E Create()
 		{
-			return Activator.CreateInstance<E>();
+			return DomainContainer.Create<E>();
 		}
 
 		/// <inheritdoc/>
 		public T Create<T>() where T : class, E
 		{
-			return Activator.CreateInstance<T>();
+			return DomainContainer.Create<T>();
 		}
 
 		/// <inheritdoc/>

@@ -5,6 +5,8 @@ using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Proxies.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Grammophone.DataAccess.EntityFrameworkCore
@@ -74,7 +76,17 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		public ICollection<IEntityListener> EntityListeners { get; } = new List<IEntityListener>();
 
 		/// <inheritdoc/>
-		public bool IsProxyCreationEnabled { get; set; } = true;
+		public bool IsProxyCreationEnabled
+		{
+			get
+			{
+				return true;
+			}
+			set
+			{
+				if (!value) throw new DataAccessException("Proxy class generation is always on for the Entity Framework Core implementation.");
+			}
+		}
 
 		/// <inheritdoc/>
 		public bool IsLazyLoadingEnabled
@@ -188,6 +200,11 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// <inheritdoc/>
 		public T Create<T>() where T : class
 		{
+			if (this.IsProxyCreationEnabled)
+			{
+				return this.CreateProxy<T>();
+			}
+
 			return Activator.CreateInstance<T>();
 		}
 
@@ -223,6 +240,25 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		public IEntityEntry<E> GetEntry<E>(E entity) where E : class
 		{
 			return new EFCoreEntityEntry<E>(Entry(entity));
+		}
+
+		#endregion
+
+		#region Protected methods
+
+		/// <summary>
+		/// Enables lazy-loading and change-tracking proxies.
+		/// </summary>
+		/// <param name="optionsBuilder">The builder used to create or modify options for this context.</param>
+		/// <remarks>
+		/// Derived domain containers overriding this method must call the base implementation if
+		/// <see cref="IDomainContainer.Create{T}"/> is expected to create proxy instances.
+		/// </remarks>
+		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+		{
+			optionsBuilder
+				.UseLazyLoadingProxies()
+				.UseChangeTrackingProxies();
 		}
 
 		#endregion
