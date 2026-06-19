@@ -31,8 +31,12 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// <summary>
 		/// Create.
 		/// </summary>
-		protected EFCoreDomainContainer()
-			: this(TransactionMode.Real)
+		/// <param name="useChangeTracking">
+		/// If true, enable EF Core change-tracking proxies in addition to lazy-loading proxies.
+		/// This requires all mapped properties of entity classes to be virtual and collection navigations to support change notifications.
+		/// </param>
+		protected EFCoreDomainContainer(bool useChangeTracking)
+			: this(TransactionMode.Real, useChangeTracking)
 		{
 		}
 
@@ -40,17 +44,26 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// Create.
 		/// </summary>
 		/// <param name="transactionMode">The transaction behavior.</param>
-		protected EFCoreDomainContainer(TransactionMode transactionMode)
+		/// <param name="useChangeTracking">
+		/// If true, enable EF Core change-tracking proxies in addition to lazy-loading proxies.
+		/// This requires all mapped properties of entity classes to be virtual and collection navigations to support change notifications.
+		/// </param>
+		protected EFCoreDomainContainer(TransactionMode transactionMode, bool useChangeTracking)
 		{
 			this.TransactionMode = transactionMode;
+			this.UseChangeTracking = useChangeTracking;
 		}
 
 		/// <summary>
 		/// Create.
 		/// </summary>
 		/// <param name="options">The context options.</param>
-		protected EFCoreDomainContainer(DbContextOptions options)
-			: this(options, TransactionMode.Real)
+		/// <param name="useChangeTracking">
+		/// If true, enable EF Core change-tracking proxies in addition to lazy-loading proxies.
+		/// This requires all mapped properties of entity classes to be virtual and collection navigations to support change notifications.
+		/// </param>
+		protected EFCoreDomainContainer(DbContextOptions options, bool useChangeTracking)
+			: this(options, TransactionMode.Real, useChangeTracking)
 		{
 		}
 
@@ -59,10 +72,15 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// </summary>
 		/// <param name="options">The context options.</param>
 		/// <param name="transactionMode">The transaction behavior.</param>
-		protected EFCoreDomainContainer(DbContextOptions options, TransactionMode transactionMode)
+		/// <param name="useChangeTracking">
+		/// If true, enable EF Core change-tracking proxies in addition to lazy-loading proxies.
+		/// This requires all mapped properties of entity classes to be virtual and collection navigations to support change notifications.
+		/// </param>
+		protected EFCoreDomainContainer(DbContextOptions options, TransactionMode transactionMode, bool useChangeTracking)
 			: base(options)
 		{
 			this.TransactionMode = transactionMode;
+			this.UseChangeTracking = useChangeTracking;
 		}
 
 		#endregion
@@ -97,6 +115,17 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 
 		/// <inheritdoc/>
 		public TransactionMode TransactionMode { get; private set; }
+
+		/// <summary>
+		/// If true, EF Core change-tracking proxies are enabled in addition to lazy-loading proxies.
+		/// </summary>
+		/// <remarks>
+		/// When enabled, EF Core requires all mapped properties of entity classes to be virtual,
+		/// including scalar properties, key properties, reference navigations and collection navigations.
+		/// Collection navigation implementations must support change notifications, for example by using
+		/// <see cref="System.Collections.ObjectModel.ObservableCollection{T}"/>.
+		/// </remarks>
+		public bool UseChangeTracking { get; }
 
 		/// <summary>
 		/// Optional <see cref="IExceptionTransformer"/> to be used during saving changes
@@ -247,18 +276,23 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		#region Protected methods
 
 		/// <summary>
-		/// Enables lazy-loading and change-tracking proxies.
+		/// Enables lazy-loading proxies and, when requested, change-tracking proxies.
 		/// </summary>
 		/// <param name="optionsBuilder">The builder used to create or modify options for this context.</param>
 		/// <remarks>
 		/// Derived domain containers overriding this method must call the base implementation if
 		/// <see cref="IDomainContainer.Create{T}"/> is expected to create proxy instances.
+		/// If <see cref="UseChangeTracking"/> is true, EF Core also requires all mapped entity properties to be virtual
+		/// and collection navigations to support change notifications.
 		/// </remarks>
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
-			optionsBuilder
-				.UseLazyLoadingProxies()
-				.UseChangeTrackingProxies();
+			optionsBuilder.UseLazyLoadingProxies();
+
+			if (this.UseChangeTracking)
+			{
+				optionsBuilder.UseChangeTrackingProxies();
+			}
 		}
 
 		#endregion
