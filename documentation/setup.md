@@ -10,7 +10,7 @@ Define a domain container by deriving from `EFCoreDomainContainer`:
 public class EFCoreMusicDomainContainer : EFCoreDomainContainer
 {
 	public EFCoreMusicDomainContainer(DbContextOptions options)
-		: base(options)
+		: base(options, useChangeTracking: true)
 	{
 	}
 
@@ -30,9 +30,11 @@ public class EFCoreMusicDomainContainer : EFCoreDomainContainer
 }
 ```
 
-`EFCoreDomainContainer.OnConfiguring` enables lazy-loading and change-tracking proxies. Derived contexts overriding `OnConfiguring` must call `base.OnConfiguring(optionsBuilder)` if `IDomainContainer.Create<T>()` is expected to create proxy instances.
+`EFCoreDomainContainer.OnConfiguring` always enables lazy-loading proxies. Change-tracking proxies are controlled by the required `useChangeTracking` constructor argument. Derived contexts overriding `OnConfiguring` must call `base.OnConfiguring(optionsBuilder)` if `IDomainContainer.Create<T>()` is expected to create proxy instances.
 
 Application code should use `IDomainContainer.Create<T>()` or `IEntitySet<T>.Create()` for new entities, not provider-specific factory APIs.
+
+The example specifies `useChangeTracking: true` deliberately because the sample music entities are designed for change-tracking proxies: every mapped property is virtual and collection navigations use notification-capable collections. In ordinary migrations from EF6, choose this value consciously. Use `false` to keep EF Core snapshot tracking while still enabling lazy-loading proxies.
 
 ## Options
 
@@ -44,7 +46,7 @@ var options = new DbContextOptionsBuilder<EFCoreMusicDomainContainer>()
 	.Options;
 ```
 
-The base container configures proxy support. Entity classes must satisfy EF Core proxy requirements. With change-tracking proxies enabled, every mapped property must be `virtual` without exception, including scalar properties, key properties, reference navigations and collection navigations. Collection navigation implementations must support change notifications, for example by using `ObservableCollection<T>`.
+The base container configures lazy-loading proxy support. If `useChangeTracking` is `true`, entity classes must also satisfy EF Core change-tracking proxy requirements: every mapped property must be `virtual` without exception, including scalar properties, key properties, reference navigations and collection navigations. Collection navigation implementations must support change notifications, for example by using `ObservableCollection<T>`.
 
 ## Adapter
 
