@@ -32,6 +32,8 @@ public class EFCoreMusicDomainContainer : EFCoreDomainContainer
 
 `EFCoreDomainContainer.OnConfiguring` enables lazy-loading and change-tracking proxies. Derived contexts overriding `OnConfiguring` must call `base.OnConfiguring(optionsBuilder)` if `IDomainContainer.Create<T>()` is expected to create proxy instances.
 
+Application code should use `IDomainContainer.Create<T>()` or `IEntitySet<T>.Create()` for new entities, not provider-specific factory APIs.
+
 ## Options
 
 Configure EF Core normally:
@@ -42,7 +44,7 @@ var options = new DbContextOptionsBuilder<EFCoreMusicDomainContainer>()
 	.Options;
 ```
 
-The base container configures proxy support. Entity classes must satisfy EF Core proxy requirements. With change-tracking proxies enabled, scalar properties and navigation properties should be virtual, and collection navigation implementations should support change notifications.
+The base container configures proxy support. Entity classes must satisfy EF Core proxy requirements. With change-tracking proxies enabled, every mapped property must be `virtual` without exception, including scalar properties, key properties, reference navigations and collection navigations. Collection navigation implementations must support change notifications, for example by using `ObservableCollection<T>`.
 
 ## Adapter
 
