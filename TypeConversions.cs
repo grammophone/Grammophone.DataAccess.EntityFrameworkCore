@@ -30,9 +30,10 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// </summary>
 		public static TrackingState EntityStateToTrackingState(EntityState entityState)
 		{
+			if (entityState == EntityState.Detached) return TrackingState.Detached;
+
 			TrackingState trackingState = default;
 
-			if ((entityState & EntityState.Detached) != 0) trackingState |= TrackingState.Detached;
 			if ((entityState & EntityState.Unchanged) != 0) trackingState |= TrackingState.Unchanged;
 			if ((entityState & EntityState.Added) != 0) trackingState |= TrackingState.Added;
 			if ((entityState & EntityState.Deleted) != 0) trackingState |= TrackingState.Deleted;
