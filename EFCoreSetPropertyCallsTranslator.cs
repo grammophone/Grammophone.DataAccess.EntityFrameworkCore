@@ -59,10 +59,11 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 				if (node.Method.DeclaringType?.IsGenericType == true
 					&& node.Method.DeclaringType.GetGenericTypeDefinition() == typeof(SetPropertyCalls<>))
 				{
+					var visitedObject = Visit(node.Object);
 					var visitedArguments = node.Arguments.Select(Visit).ToArray();
 					var nativeMethod = GetNativeSetPropertyMethod(node.Method, visitedArguments);
 
-					return Expression.Call(visitedArguments[0], nativeMethod, visitedArguments.Skip(1));
+					return Expression.Call(visitedObject, nativeMethod, visitedArguments);
 				}
 
 				return base.VisitMethodCall(node);
@@ -77,7 +78,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 					.Where(m => m.Name == nameof(Microsoft.EntityFrameworkCore.Query.SetPropertyCalls<T>.SetProperty))
 					.Where(m => m.IsGenericMethodDefinition)
 					.Select(m => m.MakeGenericMethod(genericArguments))
-					.Single(m => ParametersMatch(m, visitedArguments.Skip(1).ToArray()));
+					.Single(m => ParametersMatch(m, visitedArguments));
 			}
 
 			private static bool ParametersMatch(MethodInfo methodInfo, Expression[] arguments)
