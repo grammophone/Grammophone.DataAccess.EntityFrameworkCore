@@ -83,6 +83,25 @@ var album = await musicDomainContainer.Albums
 
 The EF Core implementation receives native queryables in its terminal and shaping adapters. Implementers can delegate to EF Core APIs directly.
 
+## Set-Based Mutations
+
+EF Core supports portable set-based delete and update operations directly:
+
+```csharp
+var deleted = await musicDomainContainer.Tracks
+	.Where(t => t.Album.Name == "Blue Integration")
+	.ExecuteDeleteAsync();
+```
+
+```csharp
+var updated = await musicDomainContainer.Tracks
+	.Where(t => t.Album.Name == "Blue Integration")
+	.ExecuteUpdateAsync(setters => setters
+		.SetProperty(t => t.DurationSeconds, t => t.DurationSeconds + 5));
+```
+
+These operations execute immediately in the database. They do not materialize entities, do not use change tracking to update or delete individual entities and do not synchronize already-tracked instances.
+
 ## SQL Server Exception Translation
 
 Configure SQL Server exception translation when creating the context:

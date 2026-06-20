@@ -13,6 +13,7 @@ It targets .NET 8 and adapts EF Core `DbContext`, `DbSet<T>`, query execution, q
 - `EFCoreQueryTranslatorFactory` maps portable functions to EF Core and SQL Server functions.
 - `EFCoreTerminalMethodsAdapter` delegates async terminal methods to EF Core async query APIs.
 - `EFCoreShapingMethodsAdapter` delegates executable shaping operations such as `Include` and `AsNoTracking` to EF Core.
+- `EFCoreSetOperationMethodsAdapter` delegates set-based mutations such as `ExecuteDelete` and `ExecuteUpdate` to EF Core.
 - `MicrosoftSqlServerExceptionTransformer` normalizes SQL Server provider errors into portable exceptions.
 - Proxy creation is enabled through EF Core lazy-loading and change-tracking proxies.
 
