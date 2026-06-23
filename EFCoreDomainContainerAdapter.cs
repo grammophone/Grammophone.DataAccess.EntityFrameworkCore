@@ -59,6 +59,15 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			set => this.InnerDomainContainer.IsLazyLoadingEnabled = value;
 		}
 
+		/// <summary>
+		/// Optional exception transformer used by the adapted container.
+		/// </summary>
+		public IExceptionTransformer ExceptionTransformer
+		{
+			get => this.InnerDomainContainer.ExceptionTransformer;
+			set => this.InnerDomainContainer.ExceptionTransformer = value;
+		}
+
 		/// <inheritdoc/>
 		public TransactionMode TransactionMode => this.InnerDomainContainer.TransactionMode;
 
