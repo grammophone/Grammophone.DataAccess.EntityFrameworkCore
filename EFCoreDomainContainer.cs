@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Proxies.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -145,9 +147,15 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		{
 			if (TransactionMode == TransactionMode.Deferred && transactionNestingLevel >= 1) return 0;
 
+			var addedEntries = NotifySavingChanges();
+
 			try
 			{
-				return base.SaveChanges();
+				int changesCount = base.SaveChanges();
+
+				NotifyAddedEntriesSaved(addedEntries);
+
+				return changesCount;
 			}
 			catch (DbUpdateException updateException)
 			{
@@ -166,9 +174,15 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		{
 			if (TransactionMode == TransactionMode.Deferred && transactionNestingLevel >= 1) return 0;
 
+			var addedEntries = NotifySavingChanges();
+
 			try
 			{
-				return await base.SaveChangesAsync(cancellationToken);
+				int changesCount = await base.SaveChangesAsync(cancellationToken);
+
+				NotifyAddedEntriesSaved(addedEntries);
+
+				return changesCount;
 			}
 			catch (DbUpdateException updateException)
 			{
@@ -376,6 +390,52 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			}
 
 			return null;
+		}
+
+		private IReadOnlyList<EntityEntry> NotifySavingChanges()
+		{
+			if (this.EntityListeners.Count == 0) return Array.Empty<EntityEntry>();
+
+			ChangeTracker.DetectChanges();
+
+			var deletedEntries = ChangeTracker.Entries().Where(e => e.State == EntityState.Deleted).ToArray();
+			var changedEntries = ChangeTracker.Entries().Where(e => e.State == EntityState.Modified).ToArray();
+			var addedEntries = ChangeTracker.Entries().Where(e => e.State == EntityState.Added).ToArray();
+
+			foreach (var entityListener in this.EntityListeners)
+			{
+				foreach (var deletedEntry in deletedEntries)
+				{
+					entityListener.OnDeleting(deletedEntry.Entity);
+				}
+
+				foreach (var changedEntry in changedEntries)
+				{
+					entityListener.OnChanging(changedEntry.Entity);
+				}
+
+				foreach (var addedEntry in addedEntries)
+				{
+					entityListener.OnAdding(addedEntry.Entity);
+				}
+			}
+
+			ChangeTracker.DetectChanges();
+
+			return addedEntries;
+		}
+
+		private void NotifyAddedEntriesSaved(IReadOnlyList<EntityEntry> addedEntries)
+		{
+			foreach (var addedEntry in addedEntries)
+			{
+				if (addedEntry.State != EntityState.Unchanged) continue;
+
+				foreach (var entityListener in this.EntityListeners)
+				{
+					entityListener.OnAdded(addedEntry.Entity);
+				}
+			}
 		}
 
 		#endregion
