@@ -335,6 +335,29 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			}
 		}
 
+		/// <summary>
+		/// Set the delete behavior for relationships conventionally configured for database cascade delete.
+		/// </summary>
+		/// <param name="modelBuilder">The model builder being configured.</param>
+		/// <param name="deleteBehavior">The delete behavior to use instead of database cascade delete.</param>
+		/// <remarks>
+		/// Call this near the end of <c>OnModelCreating</c> to keep convention-inferred
+		/// required relationships while replacing their default <see cref="DeleteBehavior.Cascade"/> behavior.
+		/// Configure explicit exceptions after calling this method.
+		/// </remarks>
+		protected void SetDefaultDeleteBehavior(ModelBuilder modelBuilder, DeleteBehavior deleteBehavior = DeleteBehavior.ClientCascade)
+		{
+			if (modelBuilder == null) throw new ArgumentNullException(nameof(modelBuilder));
+
+			foreach (var foreignKey in modelBuilder.Model.GetEntityTypes().SelectMany(entityType => entityType.GetForeignKeys()))
+			{
+				if (foreignKey.DeleteBehavior == DeleteBehavior.Cascade)
+				{
+					foreignKey.DeleteBehavior = deleteBehavior;
+				}
+			}
+		}
+
 		#endregion
 
 		#region Internal methods
