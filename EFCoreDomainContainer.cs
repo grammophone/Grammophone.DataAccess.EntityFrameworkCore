@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Proxies.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -18,11 +19,34 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 	/// </summary>
 	public abstract class EFCoreDomainContainer : DbContext, IDomainContainer
 	{
+		#region Private classes
+
+		private sealed class EntityListenerMaterializationInterceptor : IMaterializationInterceptor
+		{
+			public object InitializedInstance(MaterializationInterceptionData materializationData, object entity)
+			{
+				if (materializationData.Context is EFCoreDomainContainer domainContainer)
+				{
+					foreach (var entityListener in domainContainer.EntityListeners)
+					{
+						entityListener.OnRead(entity);
+					}
+				}
+
+				return entity;
+			}
+		}
+
+		#endregion
+
 		#region Private fields
 
 		private EFCoreChangeTracker changeTracker;
 
 		private IDbContextTransaction dbContextTransaction;
+
+		private static readonly EntityListenerMaterializationInterceptor entityListenerMaterializationInterceptor = new EntityListenerMaterializationInterceptor();
+
 
 		private int transactionNestingLevel;
 
@@ -301,6 +325,8 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// </remarks>
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
+			optionsBuilder.AddInterceptors(entityListenerMaterializationInterceptor);
+
 			optionsBuilder.UseLazyLoadingProxies();
 
 			if (this.UseChangeTracking)
