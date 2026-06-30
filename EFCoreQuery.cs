@@ -47,9 +47,6 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// <inheritdoc/>
 		public IDomainContainer DomainContainer { get; }
 
-		/// <inheritdoc/>
-		public IQueryProvider NativeProvider => NativeQuery.Provider;
-
 		/// <summary>
 		/// The translating provider associated with this query.
 		/// </summary>
@@ -57,7 +54,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		{
 			get
 			{
-				return translatingProvider ??= new EFCoreTranslatingQueryProvider(this.NativeProvider, this.DomainContainer);
+				return translatingProvider ??= new EFCoreTranslatingQueryProvider(this.NativeQuery.Provider, this.DomainContainer);
 			}
 		}
 
@@ -80,8 +77,9 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 
 		IEnumerator IEnumerable.GetEnumerator()
 		{
-			var translatedExpression = this.TranslatingProvider.TranslateExpression(NativeQuery.Expression);
-			var translatedQuery = this.NativeProvider.CreateQuery(translatedExpression);
+			var translatedExpression = this.TranslatingProvider.TranslateExpression(this.NativeQuery.Expression);
+			
+			var translatedQuery = this.NativeQuery.Provider.CreateQuery(translatedExpression);
 
 			return translatedQuery.GetEnumerator();
 		}
@@ -118,7 +116,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		public IEnumerator<E> GetEnumerator()
 		{
 			var translatedExpression = this.TranslatingProvider.TranslateExpression(NativeQuery.Expression);
-			var translatedQuery = this.NativeProvider.CreateQuery<E>(translatedExpression);
+			var translatedQuery = this.NativeQuery.Provider.CreateQuery<E>(translatedExpression);
 
 			return translatedQuery.GetEnumerator();
 		}
