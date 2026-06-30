@@ -63,6 +63,13 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 
 		#endregion
 
+		#region Expplicit IEntityQuery implementation
+
+		/// <inheritdoc/>
+		IQueryable IEntityQuery.NativeQuery => this.NativeQuery;
+
+		#endregion
+
 		#region Explicit IQueryable implementation
 
 		IQueryProvider IQueryable.Provider => this.TranslatingProvider;
