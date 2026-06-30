@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -15,11 +16,11 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		#region Public methods
 
 		/// <inheritdoc/>
-		public override Task<bool> AllAsync<T>(IQueryable<T> query, Expression<System.Func<T, bool>> predicate)
+		public override Task<bool> AllAsync<T>(IQueryable<T> query, Expression<Func<T, bool>> predicate)
 			=> AllAsync(query, predicate, default(CancellationToken));
 
 		/// <inheritdoc/>
-		public override Task<bool> AllAsync<T>(IQueryable<T> query, Expression<System.Func<T, bool>> predicate, CancellationToken cancellationToken)
+		public override Task<bool> AllAsync<T>(IQueryable<T> query, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
 			=> EntityFrameworkQueryableExtensions.AllAsync(query, predicate, cancellationToken);
 
 		/// <inheritdoc/>
@@ -31,11 +32,11 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			=> EntityFrameworkQueryableExtensions.AnyAsync(query, cancellationToken);
 
 		/// <inheritdoc/>
-		public override Task<bool> AnyAsync<T>(IQueryable<T> query, Expression<System.Func<T, bool>> predicate)
+		public override Task<bool> AnyAsync<T>(IQueryable<T> query, Expression<Func<T, bool>> predicate)
 			=> AnyAsync(query, predicate, default(CancellationToken));
 
 		/// <inheritdoc/>
-		public override Task<bool> AnyAsync<T>(IQueryable<T> query, Expression<System.Func<T, bool>> predicate, CancellationToken cancellationToken)
+		public override Task<bool> AnyAsync<T>(IQueryable<T> query, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
 			=> EntityFrameworkQueryableExtensions.AnyAsync(query, predicate, cancellationToken);
 
 		/// <inheritdoc/>
@@ -47,11 +48,11 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			=> EntityFrameworkQueryableExtensions.CountAsync(query, cancellationToken);
 
 		/// <inheritdoc/>
-		public override Task<int> CountAsync<T>(IQueryable<T> query, Expression<System.Func<T, bool>> predicate)
+		public override Task<int> CountAsync<T>(IQueryable<T> query, Expression<Func<T, bool>> predicate)
 			=> CountAsync(query, predicate, default(CancellationToken));
 
 		/// <inheritdoc/>
-		public override Task<int> CountAsync<T>(IQueryable<T> query, Expression<System.Func<T, bool>> predicate, CancellationToken cancellationToken)
+		public override Task<int> CountAsync<T>(IQueryable<T> query, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
 			=> EntityFrameworkQueryableExtensions.CountAsync(query, predicate, cancellationToken);
 
 		/// <inheritdoc/>
@@ -63,11 +64,11 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			=> EntityFrameworkQueryableExtensions.LongCountAsync(query, cancellationToken);
 
 		/// <inheritdoc/>
-		public override Task<long> LongCountAsync<T>(IQueryable<T> query, Expression<System.Func<T, bool>> predicate)
+		public override Task<long> LongCountAsync<T>(IQueryable<T> query, Expression<Func<T, bool>> predicate)
 			=> LongCountAsync(query, predicate, default(CancellationToken));
 
 		/// <inheritdoc/>
-		public override Task<long> LongCountAsync<T>(IQueryable<T> query, Expression<System.Func<T, bool>> predicate, CancellationToken cancellationToken)
+		public override Task<long> LongCountAsync<T>(IQueryable<T> query, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
 			=> EntityFrameworkQueryableExtensions.LongCountAsync(query, predicate, cancellationToken);
 
 		/// <inheritdoc/>
@@ -79,11 +80,11 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			=> EntityFrameworkQueryableExtensions.FirstAsync(query, cancellationToken);
 
 		/// <inheritdoc/>
-		public override Task<T> FirstAsync<T>(IQueryable<T> query, Expression<System.Func<T, bool>> predicate)
+		public override Task<T> FirstAsync<T>(IQueryable<T> query, Expression<Func<T, bool>> predicate)
 			=> FirstAsync(query, predicate, default(CancellationToken));
 
 		/// <inheritdoc/>
-		public override Task<T> FirstAsync<T>(IQueryable<T> query, Expression<System.Func<T, bool>> predicate, CancellationToken cancellationToken)
+		public override Task<T> FirstAsync<T>(IQueryable<T> query, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
 			=> EntityFrameworkQueryableExtensions.FirstAsync(query, predicate, cancellationToken);
 
 		/// <inheritdoc/>
@@ -95,11 +96,11 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			=> EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(query, cancellationToken);
 
 		/// <inheritdoc/>
-		public override Task<T> FirstOrDefaultAsync<T>(IQueryable<T> query, Expression<System.Func<T, bool>> predicate)
+		public override Task<T> FirstOrDefaultAsync<T>(IQueryable<T> query, Expression<Func<T, bool>> predicate)
 			=> FirstOrDefaultAsync(query, predicate, default(CancellationToken));
 
 		/// <inheritdoc/>
-		public override Task<T> FirstOrDefaultAsync<T>(IQueryable<T> query, Expression<System.Func<T, bool>> predicate, CancellationToken cancellationToken)
+		public override Task<T> FirstOrDefaultAsync<T>(IQueryable<T> query, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
 			=> EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(query, predicate, cancellationToken);
 
 		/// <inheritdoc/>
@@ -111,11 +112,11 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			=> EntityFrameworkQueryableExtensions.SingleAsync(query, cancellationToken);
 
 		/// <inheritdoc/>
-		public override Task<T> SingleAsync<T>(IQueryable<T> query, Expression<System.Func<T, bool>> predicate)
+		public override Task<T> SingleAsync<T>(IQueryable<T> query, Expression<Func<T, bool>> predicate)
 			=> SingleAsync(query, predicate, default(CancellationToken));
 
 		/// <inheritdoc/>
-		public override Task<T> SingleAsync<T>(IQueryable<T> query, Expression<System.Func<T, bool>> predicate, CancellationToken cancellationToken)
+		public override Task<T> SingleAsync<T>(IQueryable<T> query, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
 			=> EntityFrameworkQueryableExtensions.SingleAsync(query, predicate, cancellationToken);
 
 		/// <inheritdoc/>
@@ -127,11 +128,11 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			=> EntityFrameworkQueryableExtensions.SingleOrDefaultAsync(query, cancellationToken);
 
 		/// <inheritdoc/>
-		public override Task<T> SingleOrDefaultAsync<T>(IQueryable<T> query, Expression<System.Func<T, bool>> predicate)
+		public override Task<T> SingleOrDefaultAsync<T>(IQueryable<T> query, Expression<Func<T, bool>> predicate)
 			=> SingleOrDefaultAsync(query, predicate, default(CancellationToken));
 
 		/// <inheritdoc/>
-		public override Task<T> SingleOrDefaultAsync<T>(IQueryable<T> query, Expression<System.Func<T, bool>> predicate, CancellationToken cancellationToken)
+		public override Task<T> SingleOrDefaultAsync<T>(IQueryable<T> query, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
 			=> EntityFrameworkQueryableExtensions.SingleOrDefaultAsync(query, predicate, cancellationToken);
 
 		/// <inheritdoc/>
@@ -151,12 +152,20 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			=> EntityFrameworkQueryableExtensions.ToListAsync(query, cancellationToken);
 
 		/// <inheritdoc/>
-		public override Task<Dictionary<TKey, T>> ToDictionaryAsync<T, TKey>(IQueryable<T> query, System.Func<T, TKey> keySelector)
+		public override Task<Dictionary<TKey, T>> ToDictionaryAsync<T, TKey>(IQueryable<T> query, Func<T, TKey> keySelector)
 			=> ToDictionaryAsync(query, keySelector, default(CancellationToken));
 
 		/// <inheritdoc/>
-		public override Task<Dictionary<TKey, T>> ToDictionaryAsync<T, TKey>(IQueryable<T> query, System.Func<T, TKey> keySelector, CancellationToken cancellationToken)
+		public override Task<Dictionary<TKey, T>> ToDictionaryAsync<T, TKey>(IQueryable<T> query, Func<T, TKey> keySelector, CancellationToken cancellationToken)
 			=> EntityFrameworkQueryableExtensions.ToDictionaryAsync(query, keySelector, cancellationToken);
+
+		/// <inheritdoc/>
+		public override Task<Dictionary<TKey, TValue>> ToDictionaryAsync<T, TKey, TValue>(IQueryable<T> query, Func<T, TKey> keySelector, Func<T, TValue> valueSelector)
+			=> ToDictionaryAsync(query, keySelector, valueSelector, default(CancellationToken));
+
+		/// <inheritdoc/>
+		public override Task<Dictionary<TKey, TValue>> ToDictionaryAsync<T, TKey, TValue>(IQueryable<T> query, Func<T, TKey> keySelector, Func<T, TValue> valueSelector, CancellationToken cancellationToken)
+			=> EntityFrameworkQueryableExtensions.ToDictionaryAsync(query, keySelector, valueSelector, cancellationToken);
 
 		#endregion
 	}
