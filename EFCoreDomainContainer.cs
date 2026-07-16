@@ -269,10 +269,31 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		{
 			if (this.IsProxyCreationEnabled)
 			{
-				return this.CreateProxy<T>();
+				var proxy = this.CreateProxy<T>();
+				TouchProxyNavigationGetters(proxy);
+				return proxy;
 			}
 
 			return Activator.CreateInstance<T>();
+		}
+
+		private static void TouchProxyNavigationGetters<TEntity>(TEntity proxy)
+			where TEntity : class
+		{
+			var proxyType = proxy.GetType();
+			var baseType = proxyType.BaseType;
+
+			if (baseType == null || proxyType == baseType) return;
+
+			foreach (var property in proxyType.GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public))
+			{
+				// Only touch properties inherited from the entity class, not proxy-injected properties.
+				if (property.CanRead && baseType.GetProperty(property.Name, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public) != null)
+				{
+					try { property.GetValue(proxy); }
+					catch { /* Swallow — property access is just for proxy initialization */ }
+				}
+			}
 		}
 
 		/// <inheritdoc/>
@@ -328,11 +349,6 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			optionsBuilder.AddInterceptors(entityListenerMaterializationInterceptor);
 
 			optionsBuilder.UseLazyLoadingProxies();
-
-			if (this.UseChangeTracking)
-			{
-				optionsBuilder.UseChangeTrackingProxies();
-			}
 		}
 
 		/// <summary>

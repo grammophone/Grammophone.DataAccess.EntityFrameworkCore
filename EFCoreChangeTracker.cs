@@ -49,7 +49,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			var entityState = TypeConversions.TrackingStateToEntityState(trackingState);
 
 			return dbContext.ChangeTracker.Entries<object>()
-				.Where(e => (e.State & entityState) != 0)
+				.Where(e => e.State == entityState)
 				.Select(e => new EFCoreEntityEntry<object>(e));
 		}
 
@@ -59,7 +59,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			var entityState = TypeConversions.TrackingStateToEntityState(trackingState);
 
 			return dbContext.ChangeTracker.Entries<E>()
-				.Where(e => (e.State & entityState) != 0)
+				.Where(e => e.State == entityState)
 				.Select(e => new EFCoreEntityEntry<E>(e));
 		}
 

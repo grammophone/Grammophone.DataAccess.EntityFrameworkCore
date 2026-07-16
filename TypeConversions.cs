@@ -1,3 +1,4 @@
+using System;
 using Microsoft.EntityFrameworkCore;
 
 namespace Grammophone.DataAccess.EntityFrameworkCore
@@ -14,15 +15,15 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// </summary>
 		public static EntityState TrackingStateToEntityState(TrackingState trackingState)
 		{
-			EntityState entityState = default;
-
-			if ((trackingState & TrackingState.Detached) != 0) entityState |= EntityState.Detached;
-			if ((trackingState & TrackingState.Unchanged) != 0) entityState |= EntityState.Unchanged;
-			if ((trackingState & TrackingState.Added) != 0) entityState |= EntityState.Added;
-			if ((trackingState & TrackingState.Deleted) != 0) entityState |= EntityState.Deleted;
-			if ((trackingState & TrackingState.Modified) != 0) entityState |= EntityState.Modified;
-
-			return entityState;
+			switch (trackingState)
+			{
+				case TrackingState.Detached: return EntityState.Detached;
+				case TrackingState.Unchanged: return EntityState.Unchanged;
+				case TrackingState.Added: return EntityState.Added;
+				case TrackingState.Deleted: return EntityState.Deleted;
+				case TrackingState.Modified: return EntityState.Modified;
+				default: return EntityState.Detached;
+			}
 		}
 
 		/// <summary>
@@ -30,16 +31,15 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// </summary>
 		public static TrackingState EntityStateToTrackingState(EntityState entityState)
 		{
-			if (entityState == EntityState.Detached) return TrackingState.Detached;
-
-			TrackingState trackingState = default;
-
-			if ((entityState & EntityState.Unchanged) != 0) trackingState |= TrackingState.Unchanged;
-			if ((entityState & EntityState.Added) != 0) trackingState |= TrackingState.Added;
-			if ((entityState & EntityState.Deleted) != 0) trackingState |= TrackingState.Deleted;
-			if ((entityState & EntityState.Modified) != 0) trackingState |= TrackingState.Modified;
-
-			return trackingState;
+			switch (entityState)
+			{
+				case EntityState.Detached: return TrackingState.Detached;
+				case EntityState.Unchanged: return TrackingState.Unchanged;
+				case EntityState.Added: return TrackingState.Added;
+				case EntityState.Deleted: return TrackingState.Deleted;
+				case EntityState.Modified: return TrackingState.Modified;
+				default: return TrackingState.Detached;
+			}
 		}
 
 		#endregion
