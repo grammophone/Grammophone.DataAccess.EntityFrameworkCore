@@ -47,6 +47,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 
 		private static readonly EntityListenerMaterializationInterceptor entityListenerMaterializationInterceptor = new EntityListenerMaterializationInterceptor();
 
+		private static readonly ReferenceSyncInterceptor referenceSyncInterceptor = new ReferenceSyncInterceptor();
 
 		private int transactionNestingLevel;
 
@@ -346,9 +347,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// </remarks>
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
-			optionsBuilder.AddInterceptors(entityListenerMaterializationInterceptor);
-
-			optionsBuilder.UseLazyLoadingProxies();
+			optionsBuilder.AddInterceptors(referenceSyncInterceptor, entityListenerMaterializationInterceptor);
 		}
 
 		/// <summary>
