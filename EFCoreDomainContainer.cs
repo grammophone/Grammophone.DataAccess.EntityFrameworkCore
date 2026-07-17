@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Proxies.Internal;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Grammophone.DataAccess.EntityFrameworkCore
@@ -348,6 +349,8 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
 			optionsBuilder.AddInterceptors(referenceSyncInterceptor, entityListenerMaterializationInterceptor);
+
+			optionsBuilder.ReplaceService<IQueryTranslationPreprocessorFactory, QueryTamingPreprocessorFactory>();
 		}
 
 		/// <summary>
