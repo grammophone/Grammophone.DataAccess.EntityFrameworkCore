@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Proxies.Internal;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -108,11 +109,13 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		{
 			get
 			{
-				return true;
+#pragma warning disable EF1001 // Internal EF Core API usage.
+				return this.GetService<IDbContextServices>()?.ContextOptions.FindExtension<ProxiesOptionsExtension>()?.UseProxies ?? false;
+#pragma warning restore EF1001 // Internal EF Core API usage.
 			}
 			set
 			{
-				if (!value) throw new DataAccessException("Proxy class generation is always on for the Entity Framework Core implementation.");
+				throw new DataAccessException("Proxy class creation setting is only available during the domain container setup.");
 			}
 		}
 
@@ -254,7 +257,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			if (this.IsProxyCreationEnabled)
 			{
 				var proxy = this.CreateProxy<T>();
-				TouchProxyNavigationGetters(proxy);
+				//TouchProxyNavigationGetters(proxy);
 				return proxy;
 			}
 
@@ -335,7 +338,6 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			optionsBuilder.ReplaceService<IQueryTranslationPreprocessorFactory, QueryTamingPreprocessorFactory>();
 
 			optionsBuilder.UseLazyLoadingProxies();
-			optionsBuilder.UseChangeTrackingProxies();
 		}
 
 		/// <summary>
