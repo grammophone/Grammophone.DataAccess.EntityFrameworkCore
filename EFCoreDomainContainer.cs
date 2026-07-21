@@ -257,7 +257,9 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			if (this.IsProxyCreationEnabled)
 			{
 				var proxy = this.CreateProxy<T>();
-				//TouchProxyNavigationGetters(proxy);
+				
+				TouchProxyNavigationGetters(proxy);
+				
 				return proxy;
 			}
 
