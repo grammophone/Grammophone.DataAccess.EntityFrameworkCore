@@ -8,7 +8,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 	/// <summary>
 	/// Extension methods for configuring flexible change tracking.
 	/// </summary>
-	public static class FlexibleChangeTrackingExtensions
+	public static class ChangeTrackingExtensions
 	{
 		/// <summary>
 		/// Registers per-instance hybrid change detection and entity entry subscription services,
