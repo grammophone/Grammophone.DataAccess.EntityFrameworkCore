@@ -31,22 +31,18 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// <inheritdoc/>
 		public void Add(E entity)
 		{
-			entity = EnsureEntityIsProxied(entity);
-
 			this.NativeQuery.Add(entity);
 		}
 
 		/// <inheritdoc/>
 		public void AddRange(IEnumerable<E> entities)
 		{
-			this.NativeQuery.AddRange(entities.Select(e => EnsureEntityIsProxied(e)));
+			this.NativeQuery.AddRange(entities);
 		}
 
 		/// <inheritdoc/>
 		public void Attach(E entity)
 		{
-			entity = EnsureEntityIsProxied(entity);
-
 			this.NativeQuery.Attach(entity);
 		}
 
@@ -78,38 +74,6 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		public void RemoveRange(IEnumerable<E> entities)
 		{
 			this.NativeQuery.RemoveRange(entities);
-		}
-
-		#endregion
-
-		#region Private methods
-
-		private bool IsProxy(E entity)
-		{
-			if (entity == null) throw new ArgumentNullException(nameof(entity));
-
-			var entityType = entity.GetType();
-
-			string ns = entityType.Namespace;
-
-			return ns != null && ns.StartsWith("Castle.Proxies");
-		}
-
-		private E EnsureEntityIsProxied(E entity)
-		{
-			if (entity == null) throw new ArgumentNullException(nameof(entity));
-
-			if (!this.DomainContainer.IsProxyCreationEnabled || IsProxy(entity)) return entity;
-
-			var proxyEntity = this.DomainContainer.Create<E>();
-
-			var dbContext = (DbContext)this.DomainContainer.UnderlyingContext;
-
-			var proxyEntityEntry = dbContext.Entry(proxyEntity);
-
-			proxyEntityEntry.CurrentValues.SetValues(entity);
-
-			return proxyEntity;
 		}
 
 		#endregion
