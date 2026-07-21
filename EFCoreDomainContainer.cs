@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -452,7 +453,10 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		{
 			if (this.EntityListeners.Count == 0) return Array.Empty<EntityEntry>();
 
-			ChangeTracker.DetectChanges();
+#pragma warning disable EF1001 // Internal EF Core API usage.
+			var changeDetector = this.GetService<IChangeDetector>();
+			changeDetector.DetectChanges(this.GetDependencies().StateManager);
+#pragma warning restore EF1001
 
 			var deletedEntries = ChangeTracker.Entries().Where(e => e.State == EntityState.Deleted).ToArray();
 			var changedEntries = ChangeTracker.Entries().Where(e => e.State == EntityState.Modified).ToArray();
@@ -476,7 +480,9 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 				}
 			}
 
-			ChangeTracker.DetectChanges();
+#pragma warning disable EF1001 // Internal EF Core API usage.
+			changeDetector.DetectChanges(this.GetDependencies().StateManager);
+#pragma warning restore EF1001
 
 			return addedEntries;
 		}
