@@ -80,7 +80,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// </summary>
 		/// <param name="options">The context options.</param>
 		protected EFCoreDomainContainer(DbContextOptions options)
-			: this(options, TransactionMode.Real)
+			: this(DecorateOptions(options), TransactionMode.Real)
 		{
 		}
 
@@ -90,10 +90,16 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// <param name="options">The context options.</param>
 		/// <param name="transactionMode">The transaction behavior.</param>
 		protected EFCoreDomainContainer(DbContextOptions options, TransactionMode transactionMode)
-			: base(options)
+			: base(DecorateOptions(options))
 		{
 			this.TransactionMode = transactionMode;
 		}
+
+		/// <summary>
+		/// This method is not used. Service replacements happen solely via <c>OnConfiguring</c>.
+		/// Early registration in constructors does not affect <c>ChangeTracker</c>'s cached <c>IChangeDetector</c>.
+		/// </summary>
+		private static DbContextOptions DecorateOptions(DbContextOptions options) => options;
 
 		#endregion
 
@@ -159,7 +165,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		{
 			if (TransactionMode == TransactionMode.Deferred && transactionNestingLevel >= 1) return 0;
 
-			var addedEntries = NotifySavingChanges();
+			var addedEntries = DetectAndNotifySavingChanges();
 
 			try
 			{
@@ -186,7 +192,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		{
 			if (TransactionMode == TransactionMode.Deferred && transactionNestingLevel >= 1) return 0;
 
-			var addedEntries = NotifySavingChanges();
+			var addedEntries = DetectAndNotifySavingChanges();
 
 			try
 			{
@@ -449,14 +455,14 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			return null;
 		}
 
-		private IReadOnlyList<EntityEntry> NotifySavingChanges()
+		private IReadOnlyList<EntityEntry> DetectAndNotifySavingChanges()
 		{
-			if (this.EntityListeners.Count == 0) return Array.Empty<EntityEntry>();
-
 #pragma warning disable EF1001 // Internal EF Core API usage.
 			var changeDetector = this.GetService<IChangeDetector>();
 			changeDetector.DetectChanges(this.GetDependencies().StateManager);
 #pragma warning restore EF1001
+
+			if (this.EntityListeners.Count == 0) return Array.Empty<EntityEntry>();
 
 			var deletedEntries = ChangeTracker.Entries().Where(e => e.State == EntityState.Deleted).ToArray();
 			var changedEntries = ChangeTracker.Entries().Where(e => e.State == EntityState.Modified).ToArray();
