@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 #pragma warning disable EF1001 // Internal EF Core API usage.
 
-namespace Grammophone.DataAccess.EntityFrameworkCore
+namespace Grammophone.DataAccess.EntityFrameworkCore.Infrastructure
 {
 	/// <summary>
 	/// Factory that creates a <see cref="ChangeTracker"/> wired to <see cref="HybridChangeDetector"/>

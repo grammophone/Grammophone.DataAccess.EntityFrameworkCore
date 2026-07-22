@@ -14,6 +14,8 @@ using Microsoft.EntityFrameworkCore.Proxies.Internal;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
 
+using Grammophone.DataAccess.EntityFrameworkCore.Infrastructure;
+
 namespace Grammophone.DataAccess.EntityFrameworkCore
 {
 	/// <summary>

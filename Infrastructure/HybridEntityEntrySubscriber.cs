@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace Grammophone.DataAccess.EntityFrameworkCore
+namespace Grammophone.DataAccess.EntityFrameworkCore.Infrastructure
 {
 #pragma warning disable EF1001 // Internal EF Core API usage.
 

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
 
-namespace Grammophone.DataAccess.EntityFrameworkCore
+namespace Grammophone.DataAccess.EntityFrameworkCore.Infrastructure
 {
 #pragma warning disable EF1001 // Suppress Internal EF Core API warning
 

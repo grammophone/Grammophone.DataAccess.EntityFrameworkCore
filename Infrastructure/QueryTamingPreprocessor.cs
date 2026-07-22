@@ -2,7 +2,7 @@ using System;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore.Query;
 
-namespace Grammophone.DataAccess.EntityFrameworkCore
+namespace Grammophone.DataAccess.EntityFrameworkCore.Infrastructure
 {
 	/// <summary>
 	/// Factory for creating <see cref="QueryTamingPreprocessor"/> instances.

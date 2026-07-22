@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 #pragma warning disable EF1001 // Internal EF Core API usage.
 
-namespace Grammophone.DataAccess.EntityFrameworkCore
+namespace Grammophone.DataAccess.EntityFrameworkCore.Infrastructure
 {
 	/// <summary>
 	/// <see cref="IDbContextOptionsExtension"/> that registers the hybrid change-detection
