@@ -460,6 +460,15 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		{
 			this.ChangeTracker.DetectChanges();
 
+			// Undo the premature "loaded" state that TouchProxyNavigationGetters leaves on reference
+			// navigations of freshly created proxies. Touching a reference navigation getter on a detached
+			// new proxy is required so that a value assigned to the navigation itself survives, but it also
+			// marks the navigation as loaded with a null value. When a foreign key is assigned afterwards
+			// (e.g. Detail.TypeID = 517) instead of the navigation, the navigation would stay null forever.
+			// Here, right before saving, we clear that state for still-null dependent references, so they
+			// lazy-load from their assigned foreign key once the entity is tracked.
+			ResetStuckDependentReferences();
+
 			if (this.EntityListeners.Count == 0) return Array.Empty<EntityEntry>();
 
 			var deletedEntries = ChangeTracker.Entries().Where(e => e.State == EntityState.Deleted).ToArray();
@@ -500,6 +509,53 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 					entityListener.OnAdded(addedEntry.Entity);
 				}
 			}
+		}
+
+		/// <summary>
+		/// Clears the <c>IsLoaded</c> flag on dependent reference navigations that are still null but whose
+		/// foreign key has been assigned a value, so they lazy-load correctly once the entity is tracked.
+		/// This counteracts the premature "loaded" state that <see cref="TouchProxyNavigationGetters{TEntity}"/>
+		/// leaves on freshly created proxies.
+		/// </summary>
+		private void ResetStuckDependentReferences()
+		{
+			foreach (var entry in this.ChangeTracker.Entries())
+			{
+				if (entry.State != EntityState.Added && entry.State != EntityState.Modified) continue;
+
+				foreach (var reference in entry.References)
+				{
+					if (!reference.IsLoaded || reference.CurrentValue != null) continue;
+
+					// Only navigations whose foreign key lives on this entity can be lazy-loaded from it.
+					if (!(reference.Metadata is Microsoft.EntityFrameworkCore.Metadata.INavigation navigation) || !navigation.IsOnDependent) continue;
+
+					var foreignKeyHasValue = false;
+
+					foreach (var foreignKeyProperty in navigation.ForeignKey.Properties)
+					{
+						var value = entry.Property(foreignKeyProperty.Name).CurrentValue;
+
+						if (!IsDefaultValue(value)) { foreignKeyHasValue = true; break; }
+					}
+
+					if (foreignKeyHasValue) reference.IsLoaded = false;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Determines whether a value equals the default of its type (null, or the zero value for value types).
+		/// </summary>
+		private static bool IsDefaultValue(object value)
+		{
+			if (value == null) return true;
+
+			var type = value.GetType();
+
+			if (!type.IsValueType) return false;
+
+			return value.Equals(Activator.CreateInstance(type));
 		}
 
 		#endregion
