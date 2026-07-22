@@ -1,7 +1,8 @@
+using Grammophone.DataAccess.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
-namespace Grammophone.DataAccess.EntityFrameworkCore.Infrastructure
+namespace Grammophone.DataAccess.EntityFrameworkCore
 {
 #pragma warning disable EF1001 // Internal EF Core API usage.
 
