@@ -3,7 +3,6 @@ using System.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Grammophone.DataAccess.EntityFrameworkCore
 {
@@ -123,42 +122,10 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 				return false;
 			}
 
-			// Unproxied — run full Snapshot-style detection.
-			var changesFound = false;
-			var entityType = entry.EntityType;
+			// Unproxied — delegate to base ChangeDetector which handles all navigation types.
+			base.DetectChanges(entry);
 
-			OnDetectingEntityChanges(entry);
-
-			foreach (var property in entityType.GetProperties())
-			{
-				if (!entry.IsModified(property) && DetectValueChange(entry, property))
-				{
-					changesFound = true;
-				}
-			}
-
-			if (entry.HasRelationshipSnapshot)
-			{
-				foreach (var navigation in entityType.GetNavigations())
-				{
-					if (DetectNavigationChange(entry, navigation))
-					{
-						changesFound = true;
-					}
-				}
-
-				foreach (var navigation in entityType.GetSkipNavigations())
-				{
-					if (DetectNavigationChange(entry, navigation))
-					{
-						changesFound = true;
-					}
-				}
-			}
-
-			OnDetectedEntityChanges(entry, changesFound);
-
-			return changesFound;
+			return true;
 		}
 
 		#endregion

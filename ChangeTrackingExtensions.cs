@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Grammophone.DataAccess.EntityFrameworkCore
 {
@@ -17,8 +17,8 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// </summary>
 		public static DbContextOptionsBuilder UseFlexibleChangeTracking(this DbContextOptionsBuilder optionsBuilder)
 		{
-			optionsBuilder.ReplaceService<IChangeDetector, HybridChangeDetector>();
-			optionsBuilder.ReplaceService<IInternalEntityEntrySubscriber, HybridEntityEntrySubscriber>();
+			((IDbContextOptionsBuilderInfrastructure)optionsBuilder)
+				.AddOrUpdateExtension(new FlexibleChangeTrackingOptionsExtension());
 
 			return optionsBuilder;
 		}

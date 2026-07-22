@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -457,10 +456,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 
 		private IReadOnlyList<EntityEntry> DetectAndNotifySavingChanges()
 		{
-#pragma warning disable EF1001 // Internal EF Core API usage.
-			var changeDetector = this.GetService<IChangeDetector>();
-			changeDetector.DetectChanges(this.GetDependencies().StateManager);
-#pragma warning restore EF1001
+			this.ChangeTracker.DetectChanges();
 
 			if (this.EntityListeners.Count == 0) return Array.Empty<EntityEntry>();
 
@@ -486,9 +482,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 				}
 			}
 
-#pragma warning disable EF1001 // Internal EF Core API usage.
-			changeDetector.DetectChanges(this.GetDependencies().StateManager);
-#pragma warning restore EF1001
+			this.ChangeTracker.DetectChanges();
 
 			return addedEntries;
 		}
