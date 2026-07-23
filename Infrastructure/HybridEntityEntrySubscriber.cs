@@ -25,6 +25,16 @@ namespace Grammophone.DataAccess.EntityFrameworkCore.Infrastructure
 
 			if (RequiresSnapshotFallback(strategy, entry.Entity))
 			{
+				// Notification strategies other than ChangedNotifications do not use eager snapshots,
+				// because they expect original values to be captured by the PropertyChanging event.
+				// This instance raises no such event, so the snapshots must be taken up front:
+				// without them InternalEntityEntry.GetRelationshipSnapshotValue falls back to reading
+				// the current value, making every later assignment compare equal to itself and thus
+				// escape detection. Establishing both baselines is what lets HybridChangeDetector
+				// apply Snapshot-style detection to this instance.
+				entry.EnsureOriginalValues();
+				entry.EnsureRelationshipSnapshot();
+
 				foreach (var navigation in entityType.GetNavigations())
 				{
 					if (navigation.IsCollection)

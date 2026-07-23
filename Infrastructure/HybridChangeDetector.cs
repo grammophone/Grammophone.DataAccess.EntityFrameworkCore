@@ -3,6 +3,8 @@ using System.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Grammophone.DataAccess.EntityFrameworkCore.Infrastructure
 {
@@ -122,10 +124,81 @@ namespace Grammophone.DataAccess.EntityFrameworkCore.Infrastructure
 				return false;
 			}
 
-			// Unproxied — delegate to base ChangeDetector which handles all navigation types.
+			// Unproxied instance of an entity type configured for notification tracking.
+			// The base ChangeDetector refuses to look at it: its LocalDetectChanges returns
+			// immediately whenever the entity type's strategy is not Snapshot, so a plain
+			// 'new Entity()' would never have its property or navigation assignments noticed —
+			// most visibly, an assigned reference navigation would never reach foreign key fixup.
+			// Drive the detection explicitly through PropertyChanged, the same entry point a
+			// change-tracking proxy's notification would use.
 			base.DetectChanges(entry);
 
-			return true;
+			return DetectSnapshotChanges(entry);
+		}
+
+		/// <summary>
+		/// Applies Snapshot-style detection to a single entry by comparing it against the snapshots
+		/// taken in <see cref="HybridEntityEntrySubscriber"/> and reporting the differences through
+		/// the notification path.
+		/// </summary>
+		private bool DetectSnapshotChanges(InternalEntityEntry entry)
+		{
+			var entityType = entry.EntityType;
+
+			if (entityType.GetChangeTrackingStrategy() == ChangeTrackingStrategy.Snapshot)
+			{
+				// The base ChangeDetector has already handled this entry.
+				return false;
+			}
+
+			var changesFound = false;
+
+			if (entry.EntityState != EntityState.Added && entry.EntityState != EntityState.Deleted)
+			{
+				foreach (var property in entityType.GetProperties())
+				{
+					if (property.GetOriginalValueIndex() < 0) continue;
+					if (entry.IsModified(property) || entry.IsConceptualNull(property)) continue;
+
+					if (HasValueChanged(entry, property))
+					{
+						PropertyChanged(entry, property, setModified: true);
+
+						changesFound = true;
+					}
+				}
+			}
+
+			if (entry.HasRelationshipSnapshot)
+			{
+				// PropertyChanged routes navigations to DetectNavigationChange, which compares the
+				// current value against the relationship snapshot and only acts on a real difference.
+				foreach (var navigation in entityType.GetNavigations())
+				{
+					PropertyChanged(entry, navigation, setModified: false);
+				}
+
+				foreach (var skipNavigation in entityType.GetSkipNavigations())
+				{
+					PropertyChanged(entry, skipNavigation, setModified: false);
+				}
+
+				changesFound = true;
+			}
+
+			return changesFound;
+		}
+
+		private static bool HasValueChanged(InternalEntityEntry entry, IProperty property)
+		{
+			var currentValue = entry.GetCurrentValue(property);
+			var originalValue = entry.GetOriginalValue(property);
+
+			var comparer = property.GetValueComparer();
+
+			return comparer != null
+				? !comparer.Equals(currentValue, originalValue)
+				: !Equals(currentValue, originalValue);
 		}
 
 		#endregion
