@@ -274,6 +274,13 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			return Activator.CreateInstance<T>();
 		}
 
+		/// <remarks>
+		/// Collection properties are left untouched. Reading one on a proxy which is still detached makes its
+		/// lazy loader record the collection as loaded while empty, and that verdict survives the entity being
+		/// tracked: the collection then stays empty for the rest of the instance's life, even once the database
+		/// holds rows for it. That is what happens to an entity whose collection is filled by a set-based update
+		/// rather than through the entity itself, which cannot reach the tracked instance to begin with.
+		/// </remarks>
 		private static void TouchProxyNavigationGetters<TEntity>(TEntity proxy)
 			where TEntity : class
 		{
@@ -284,6 +291,8 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 
 			foreach (var property in proxyType.GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public))
 			{
+				if (IsCollectionProperty(property)) continue;
+
 				// Only touch properties inherited from the entity class, not proxy-injected properties.
 				if (property.CanRead && baseType.GetProperty(property.Name, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public) != null)
 				{
@@ -291,6 +300,18 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 					catch { /* Swallow — property access is just for proxy initialization */ }
 				}
 			}
+		}
+
+		/// <summary>
+		/// Determines whether a property holds a collection, strings excluded.
+		/// </summary>
+		private static bool IsCollectionProperty(System.Reflection.PropertyInfo property)
+		{
+			var propertyType = property.PropertyType;
+
+			if (propertyType == typeof(string) || propertyType.IsArray) return false;
+
+			return typeof(System.Collections.IEnumerable).IsAssignableFrom(propertyType);
 		}
 
 		/// <inheritdoc/>
