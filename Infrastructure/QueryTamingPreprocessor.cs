@@ -1,5 +1,6 @@
 using System;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 
 namespace Grammophone.DataAccess.EntityFrameworkCore.Infrastructure
@@ -57,6 +58,53 @@ namespace Grammophone.DataAccess.EntityFrameworkCore.Infrastructure
 			catch (InvalidOperationException ex) when (ex.Message.Contains("Collections in the final projection must be an 'IEnumerable<T>'"))
 			{
 				return ProcessQueryRoots(expression);
+			}
+		}
+
+		/// <inheritdoc/>
+		/// <remarks>
+		/// Entity Framework Core refuses eager loading on a query whose source is a projection through a
+		/// navigation, such as <c>from t in Transitions select t.Event</c> followed by an <c>Include</c>.
+		/// EF6 accepts that shape, so rather than fail the query, retry it without the eager loading:
+		/// with lazy loading proxies the navigations are still resolved when they are read, only in
+		/// separate round trips. Queries carrying no eager loading are left to fail as before.
+		/// </remarks>
+		public override Expression Process(Expression query)
+		{
+			try
+			{
+				return base.Process(query);
+			}
+			catch (InvalidOperationException ex) when (IsEagerLoadingRejection(ex))
+			{
+				var queryWithoutEagerLoading = new EagerLoadingStrippingExpressionVisitor().Visit(query);
+
+				// Nothing was stripped, so retrying would fail identically.
+				if (queryWithoutEagerLoading == query) throw;
+
+				return base.Process(queryWithoutEagerLoading);
+			}
+		}
+
+		private static bool IsEagerLoadingRejection(InvalidOperationException exception)
+			=> exception.Message.Contains("'Include'") || exception.Message.Contains("'ThenInclude'");
+
+		/// <summary>
+		/// Removes <see cref="EntityFrameworkQueryableExtensions"/> eager loading calls from a query,
+		/// replacing each of them by the query they were applied to.
+		/// </summary>
+		private sealed class EagerLoadingStrippingExpressionVisitor : ExpressionVisitor
+		{
+			protected override Expression VisitMethodCall(MethodCallExpression node)
+			{
+				if (node.Method.DeclaringType == typeof(EntityFrameworkQueryableExtensions)
+					&& (node.Method.Name == nameof(EntityFrameworkQueryableExtensions.Include)
+						|| node.Method.Name == nameof(EntityFrameworkQueryableExtensions.ThenInclude)))
+				{
+					return Visit(node.Arguments[0]);
+				}
+
+				return base.VisitMethodCall(node);
 			}
 		}
 	}
