@@ -31,13 +31,19 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		/// <inheritdoc/>
 		public void Add(E entity)
 		{
+			if (entity == null) throw new ArgumentNullException(nameof(entity));
+
+			if (!IsAddable(entity)) return;
+
 			this.NativeQuery.Add(entity);
 		}
 
 		/// <inheritdoc/>
 		public void AddRange(IEnumerable<E> entities)
 		{
-			this.NativeQuery.AddRange(entities);
+			if (entities == null) throw new ArgumentNullException(nameof(entities));
+
+			this.NativeQuery.AddRange(entities.Where(IsAddable));
 		}
 
 		/// <inheritdoc/>
@@ -74,6 +80,36 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		public void RemoveRange(IEnumerable<E> entities)
 		{
 			this.NativeQuery.RemoveRange(entities);
+		}
+
+		#endregion
+
+		#region Private methods
+
+		/// <summary>
+		/// Determines whether an entity still has to be handed to the underlying set in order to be added.
+		/// </summary>
+		/// <param name="entity">The entity being added.</param>
+		/// <returns>Returns true when the entity is not tracked yet.</returns>
+		/// <exception cref="DataAccessException">Thrown when the entity is being deleted.</exception>
+		/// <remarks>
+		/// Adding an entity which is already tracked must not change anything. With nested transaction scopes
+		/// an entity may well have been stored by an inner commit before control returns to the caller which
+		/// adds it, and that caller has no way of knowing. Entity Framework Core would otherwise turn such an
+		/// entity back to 'added' while it keeps its stored key, and attempt to insert it a second time.
+		/// </remarks>
+		private bool IsAddable(E entity)
+		{
+			var state = this.DomainContainer.Entry(entity).State;
+
+			if (state == TrackingState.Deleted)
+			{
+				throw new DataAccessException(
+					$"Cannot add an entity of type '{typeof(E).FullName}' while it is being deleted: " +
+					"whether that abandons the deletion or stores a second entity is not defined.");
+			}
+
+			return state == TrackingState.Detached;
 		}
 
 		#endregion
