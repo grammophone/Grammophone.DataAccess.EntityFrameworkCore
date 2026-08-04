@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Grammophone.DataAccess.EntityFrameworkCore

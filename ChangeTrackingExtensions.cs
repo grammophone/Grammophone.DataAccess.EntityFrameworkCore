@@ -1,4 +1,4 @@
-using Grammophone.DataAccess.EntityFrameworkCore.Infrastructure;
+﻿using Grammophone.DataAccess.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
