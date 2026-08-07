@@ -21,15 +21,6 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 	/// Framework 6 does once that convention is removed.
 	/// </para>
 	/// <para>
-	/// Prefer this over sweeping the foreign keys inside <c>OnModelCreating</c>, as
-	/// <see cref="EFCoreDomainContainer.SetDefaultDeleteBehavior(ModelBuilder, DeleteBehavior)"/> does:
-	/// a sweep only reaches the relationships which exist at the point it runs, so anything mapped
-	/// after it — and anything whose foreign key a later statement replaces, as
-	/// <c>HasForeignKey</c> on a one-to-one does — keeps the conventional
-	/// <see cref="DeleteBehavior.Cascade"/>. Being a convention, this runs when the model is
-	/// finalized and is therefore independent of the order of the mapping statements.
-	/// </para>
-	/// <para>
 	/// The foreign keys behind many-to-many relationships are deliberately left alone. Entity
 	/// Framework 6 removes only <c>OneToManyCascadeDeleteConvention</c> and keeps
 	/// <c>ManyToManyCascadeDeleteConvention</c>, because a row of the intermediate table belongs to
