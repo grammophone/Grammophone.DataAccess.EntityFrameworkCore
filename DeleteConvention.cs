@@ -29,7 +29,7 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 	/// <para>
 	/// Register it from <c>ConfigureConventions</c>:
 	/// <code>
-	/// configurationBuilder.Conventions.Add(_ => new NoConventionalCascadeDeleteConvention());
+	/// configurationBuilder.Conventions.Add(_ => new DeleteConvention());
 	/// </code>
 	/// </para>
 	/// </remarks>
