@@ -27,51 +27,23 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		#region Private classes
 
 		/// <summary>
-		/// Notifies <see cref="IEntityListener.OnRead(object)"/> for the materializations which
-		/// <see cref="ChangeTracker.Tracked"/> will not report.
+		/// Buffers each materialized entity for read-notification. The notification itself is issued later,
+		/// once per query result element, by <see cref="Infrastructure.ReadNotifyingQueryCompiler"/>.
 		/// </summary>
 		/// <remarks>
-		/// <para>
-		/// Read notification cannot be issued from here for a tracking query. Entity Framework Core
-		/// materializes the instance, runs the materialization interceptors, and only then calls
-		/// <c>StartTrackingFromQuery</c> — which begins by looking the instance up and returns early when
-		/// it finds an entry, reaching the state assignment which actually tracks the entity only when it
-		/// has to create that entry itself. <see cref="DbContext.Entry(object)"/> is not an inspection: it
-		/// resolves to <c>GetOrCreateEntry</c>, which creates a <c>Detached</c> entry and registers it. So
-		/// a listener calling <c>Entry</c> in this window — as the lazy loader does on the first
-		/// dereference of any navigation, which is how access checking reaches a tenant held behind one —
-		/// takes the slot tracking was about to fill, and the query yields an untracked entity while the
-		/// change tracker reports no entry at all.
-		/// </para>
-		/// <para>
-		/// Notification for tracking queries therefore happens in <see cref="OnEntityTracked"/>, after the
-		/// entity is tracked and the window is closed. This interceptor keeps the cases that event cannot
-		/// report: materializations outside a query, no-tracking queries — neither of which is followed by
-		/// any tracking, so there is no slot to take — and instances which are already tracked, for which
-		/// <c>StartTrackingFromQuery</c> returns early and raises nothing. The two paths are mutually
-		/// exclusive by construction: the condition below is exactly "<see cref="ChangeTracker.Tracked"/>
-		/// will not fire for this instance", so every materialized entity is notified exactly once.
-		/// </para>
+		/// Notifying here, during materialization, would be too early: Entity Framework Core has not yet fixed
+		/// up the row's <c>Include</c>d navigations, so a listener dereferencing one — as access checking does
+		/// to reach a tenant held behind a navigation — would lazy-load it. Buffering defers the notification
+		/// to a point where the row is fully shaped and the reader is still open, so a present include is seen
+		/// and a missing one still fails loudly.
 		/// </remarks>
-		private sealed class UntrackedReadNotificationInterceptor : IMaterializationInterceptor
+		private sealed class ReadNotificationBufferingInterceptor : IMaterializationInterceptor
 		{
 			public object InitializedInstance(MaterializationInterceptionData materializationData, object entity)
 			{
 				if (!(materializationData.Context is EFCoreDomainContainer domainContainer)) return entity;
 
-				// Subscribed from here rather than from a constructor because reading ChangeTracker forces
-				// the context's services — and therefore OnConfiguring — to initialize, which must not
-				// happen before a derived container's constructor has finished. Materialization always
-				// precedes tracking, so the subscription is established before it can be needed.
-				domainContainer.EnsureReadNotificationSubscription();
-
-				if (materializationData.QueryTrackingBehavior == QueryTrackingBehavior.TrackAll
-					&& !domainContainer.IsAlreadyTracked(materializationData.EntityType, entity))
-				{
-					return entity;
-				}
-
-				domainContainer.NotifyRead(entity);
+				domainContainer.AddReadEntityPendingNotification(entity);
 
 				return entity;
 			}
@@ -85,13 +57,13 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 
 		private IDbContextTransaction dbContextTransaction;
 
-		private static readonly UntrackedReadNotificationInterceptor untrackedReadNotificationInterceptor = new UntrackedReadNotificationInterceptor();
+		private static readonly ReadNotificationBufferingInterceptor readNotificationBufferingInterceptor = new ReadNotificationBufferingInterceptor();
 
 		private static readonly ReferenceSyncInterceptor referenceSyncInterceptor = new ReferenceSyncInterceptor();
 
-		private bool isReadNotificationSubscribed;
-
 		private int transactionNestingLevel;
+
+		private readonly List<object> readEntities = new List<object>(1024);
 
 		#endregion
 
@@ -404,9 +376,13 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 		{
 			// Order matters: reference synchronization runs first, so the read-notification interceptor
 			// tests the instance which is actually going to be tracked.
-			optionsBuilder.AddInterceptors(referenceSyncInterceptor, untrackedReadNotificationInterceptor);
+			optionsBuilder.AddInterceptors(referenceSyncInterceptor, readNotificationBufferingInterceptor);
 
 			optionsBuilder.ReplaceService<IQueryTranslationPreprocessorFactory, QueryTamingPreprocessorFactory>();
+
+#pragma warning disable EF1001 // Internal EF Core API usage.
+			optionsBuilder.ReplaceService<Microsoft.EntityFrameworkCore.Query.Internal.IQueryCompiler, ReadNotifyingQueryCompiler>();
+#pragma warning restore EF1001 // Internal EF Core API usage.
 
 			optionsBuilder.UseLazyLoadingProxies();
 		}
@@ -451,38 +427,29 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 			}
 		}
 
+		internal void NotifyForReadEntities()
+		{
+			// The buffer can hold the same instance more than once: EF revisits an instance during graph
+			// fix-up and Single/First verification. OnRead is deliberately not deduplicated — the EF6
+			// provider does not either, so notifications stay identical across providers and are idempotent
+			// by contract, not by construction.
+			for (int i = readEntities.Count - 1; i >= 0; i--)
+			{
+				object entity = readEntities[i];
+
+				NotifyRead(entity);
+
+				readEntities.RemoveAt(i);
+			}
+		}
+
 		#endregion
 
 		#region Private methods
 
-#pragma warning disable EF1001 // Suppress Internal EF Core API warning
-
-		/// <summary>
-		/// Subscribes <see cref="OnEntityTracked"/>, once per container.
-		/// </summary>
-		private void EnsureReadNotificationSubscription()
+		private void AddReadEntityPendingNotification(object entity)
 		{
-			if (isReadNotificationSubscribed) return;
-
-			isReadNotificationSubscribed = true;
-
-			this.ChangeTracker.Tracked += OnEntityTracked;
-		}
-
-		/// <summary>
-		/// Issues read notification for entities arriving from a tracking query, once they are tracked.
-		/// </summary>
-		/// <remarks>
-		/// Raised synchronously while the row is being shaped, so a listener rejecting the entity still
-		/// aborts the query before the caller can observe it. Entities tracked by being added or attached
-		/// are not reads and are reported through <see cref="IEntityListener.OnAdding(object)"/> and
-		/// <see cref="IEntityListener.OnAdded(object)"/> instead.
-		/// </remarks>
-		private void OnEntityTracked(object sender, EntityTrackedEventArgs args)
-		{
-			if (!args.FromQuery) return;
-
-			NotifyRead(args.Entry.Entity);
+			readEntities.Add(entity);
 		}
 
 		/// <summary>
@@ -496,32 +463,6 @@ namespace Grammophone.DataAccess.EntityFrameworkCore
 				entityListener.OnRead(entity);
 			}
 		}
-
-		/// <summary>
-		/// Determines whether this very instance is already tracked, in which case
-		/// <c>StartTrackingFromQuery</c> returns early and <see cref="ChangeTracker.Tracked"/> is not
-		/// raised for it.
-		/// </summary>
-		/// <param name="entityType">The entity type being materialized.</param>
-		/// <param name="entity">The materialized instance.</param>
-		/// <remarks>
-		/// A lookup only. Deliberately not <see cref="DbContext.Entry(object)"/>, which would create the
-		/// very entry whose absence is being tested for.
-		/// </remarks>
-		private bool IsAlreadyTracked(Microsoft.EntityFrameworkCore.Metadata.IEntityType entityType, object entity)
-		{
-			var primaryKey = entityType.FindPrimaryKey();
-
-			if (primaryKey == null) return false;
-
-			var keyValues = primaryKey.Properties.Select(p => p.GetGetter().GetClrValue(entity)).ToArray();
-
-			var internalEntry = this.GetService<IStateManager>().TryGetEntry(primaryKey, keyValues);
-
-			return internalEntry != null && ReferenceEquals(internalEntry.Entity, entity);
-		}
-
-#pragma warning restore EF1001
 
 		private DataAccessException TranslateUpdateException(DbUpdateException updateException)
 		{
